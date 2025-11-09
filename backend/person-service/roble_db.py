@@ -1,9 +1,11 @@
 import httpx
 import os
 
+token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYTBlYzk2OC01NjBhLTQ5OTctYjdkNS0wNWI1MjMxMzBiMmIiLCJlbWFpbCI6ImFAYy5jb20iLCJkYk5hbWUiOiJkaXNlb19kZV9zb2Z0d2FyZV9paV85MDhjMGYwN2E1Iiwicm9sZUlkIjoiMDgyZmQwNWUtZjU5Yy00MDU0LWIyOGMtMzZiZmI3NDQwNTkxIiwicm9sZSI6InBydWViYSIsInNlc3Npb25JZCI6ImNjMTU3ZGY3LWJjNmQtNGM5MS05OWQ1LWU4YTE1YWMxNGVhNiIsImlhdCI6MTc2MjcyMzAwMywiZXhwIjoxNzYyNzIzOTAzfQ.pA6j7EDyIxd0GlZ_clja4BdlwzVMaOUmBx1bscUFB70"
+
 class RobleDB:
     def __init__(self):
-        self.base_url = f"{os.getenv('ROBLE_API_URL')}/database/{os.getenv('ROBLE_DB_NAME')}"
+        self.base_url = f"https://roble-api.openlab.uninorte.edu.co/database/diseo_de_software_ii_908c0f07a5"
     
     async def insertar_persona(self, persona_data, token):
         """Inserta una nueva persona"""
