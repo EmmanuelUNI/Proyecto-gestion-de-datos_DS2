@@ -11,7 +11,6 @@ security = HTTPBearer()
 
 ROBLE_DB_NAME = "diseo_de_software_ii_908c0f07a5"     # os.getenv("ROBLE_API_URL")
 ROBLE_API_URL = "https://roble-api.openlab.uninorte.edu.co"        #os.getenv("ROBLE_DB_NAME")
-JWT_SECRET ="mi_clave_super_secreta_y_larga"   #os.getenv("JWT_SECRET")
 
 class LoginRequest(BaseModel):
     email: str
@@ -20,11 +19,10 @@ class LoginRequest(BaseModel):
 @app.post("/autenticar")
 async def login(request: LoginRequest):
     """
-    Autentica usuario contra ROBLE y genera JWT
+    Autentica usuario contra ROBLE y devuelve directamente su token
     """
     try:
         async with httpx.AsyncClient() as client:
-            # Llamar a ROBLE para validar credenciales
             response = await client.post(
                 f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/login",
                 json={
@@ -32,55 +30,55 @@ async def login(request: LoginRequest):
                     "password": request.password
                 }
             )
+
             if response.status_code != 201:
                 raise HTTPException(status_code=401, detail="Credenciales inválidas")
             
             roble_tokens = response.json()
             
-            # Generar JWT local
-            payload = {
-                "email": request.email,
-                "exp": int((datetime.utcnow() + timedelta(hours=24)).timestamp()),  # <-- aquí
-                "roble_access_token": roble_tokens.get("accessToken")
-            }
-            
-            jwt_token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
-            
             return {
-                "access_token": jwt_token,
-                "token_type": "bearer",
-                "roble_token": roble_tokens.get("accessToken")
+                "access_token": roble_tokens.get("accessToken"),
+                "token_type": "bearer"
             }
-            
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/validar-token")
-async def validate_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def validar_token_roble(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
-    Valida que el token JWT sea válido
+    Valida un token directamente contra la API de ROBLE.
     """
+    token = credentials.credentials
+    headers = {"Authorization": f"Bearer {token}"}
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=["HS256"])
-        return {"valid": True, "email": payload.get("email")}
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Token inválido")
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/verify-token", headers=headers)
+            if response.status_code != 200:
+                raise HTTPException(status_code=401, detail="Token inválido o expirado")
+            
+            data = response.json()
+            return {"valid": True, "roble_data": data}
+
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Error de conexión a ROBLE: {str(e)}")
 
 @app.post("/logout")
-async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def logout_roble(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
-    Cierra sesión
+    Cierra sesión usando el token directamente en ROBLE
     """
+    token = credentials.credentials
+    headers = {"Authorization": f"Bearer {token}"}
+
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=["HS256"])
-        roble_token = payload.get("roble_access_token")
-        
         async with httpx.AsyncClient() as client:
-            await client.post(
-                f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/logout",
-                headers={"Authorization": f"Bearer {roble_token}"}
-            )
-        
-        return {"message": "Sesión cerrada"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+            response = await client.post(f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/logout", headers=headers)
+            
+            if response.status_code != 201:
+                raise HTTPException(status_code=response.status_code, detail="No se pudo cerrar sesión en ROBLE")
+            
+        return {"message": "Sesión cerrada correctamente"}
+    
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Error de conexión a ROBLE: {str(e)}")
