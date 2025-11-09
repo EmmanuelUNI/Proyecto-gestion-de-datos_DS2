@@ -51,7 +51,8 @@ class RobleDB:
     async def eliminar_persona(self, nro_doc, token):
         """Elimina una persona"""
         async with httpx.AsyncClient() as client:
-            response = await client.delete(
+            response = await client.request(
+                "DELETE",
                 f"{self.base_url}/delete",
                 json={
                     "tableName": "persona",

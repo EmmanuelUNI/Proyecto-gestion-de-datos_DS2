@@ -3,13 +3,11 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional
 import httpx
-from validaciones import ValidadorPersona
 from roble_db import RobleDB
 
 app = FastAPI()
 security = HTTPBearer()
 roble = RobleDB()
-validador = ValidadorPersona()
 
 LOGS_SERVICE = "http://servicio-logs:8004"
 
@@ -28,30 +26,12 @@ class CrearPersonaRequest(BaseModel):
 async def crear_persona(request: CrearPersonaRequest, 
                        credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Crea una nueva persona con validaciones"""
-    
     try:
-        # Validar campos
-        validaciones = [
-            validador.validar_nombre(request.primer_nombre),
-            validador.validar_nombre(request.segundo_nombre or ""),
-            validador.validar_apellidos(request.apellidos),
-            validador.validar_fecha_nacimiento(request.fecha_nacimiento),
-            validador.validar_genero(request.genero),
-            validador.validar_email(request.correo),
-            validador.validar_celular(request.celular),
-            validador.validar_documento(request.nro_doc),
-            validador.validar_tipo_doc(request.tipo_doc)
-        ]
-        
-        for es_valido, mensaje in validaciones:
-            if not es_valido:
-                raise HTTPException(status_code=400, detail=mensaje)
-        
+       
         # Verificar que no exista previamente
         existente = await roble.obtener_persona(request.nro_doc, credentials.credentials)
         if existente:
             raise HTTPException(status_code=409, detail="Documento ya registrado")
-        
         # Insertar en ROBLE
         persona_data = {
             "primer_nombre": request.primer_nombre,
@@ -64,7 +44,6 @@ async def crear_persona(request: CrearPersonaRequest,
             "nro_doc": request.nro_doc,
             "tipo_doc": request.tipo_doc
         }
-        
         resultado = await roble.insertar_persona(persona_data, credentials.credentials)
         
         # Registrar en log
@@ -116,18 +95,6 @@ async def modificar_persona(nro_doc: str,
         if not existente:
             raise HTTPException(status_code=404, detail="Persona no encontrada")
         
-        # Validar campos que se van a actualizar
-        if "correo" in request:
-            es_valido, msg = validador.validar_email(request["correo"])
-            if not es_valido:
-                raise HTTPException(status_code=400, detail=msg)
-        
-        if "celular" in request:
-            es_valido, msg = validador.validar_celular(request["celular"])
-            if not es_valido:
-                raise HTTPException(status_code=400, detail=msg)
-        
-        # Actualizar
         resultado = await roble.actualizar_persona(nro_doc, request, credentials.credentials)
         
         # Registrar en log
