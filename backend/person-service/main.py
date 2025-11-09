@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -26,7 +26,7 @@ class CrearPersonaRequest(BaseModel):
 
 @app.post("/crear")
 async def crear_persona(request: CrearPersonaRequest, 
-                       credentials: HTTPAuthCredentials = Depends(security)):
+                       credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Crea una nueva persona con validaciones"""
     
     try:
@@ -82,7 +82,7 @@ async def crear_persona(request: CrearPersonaRequest,
 
 @app.get("/consultar/{nro_doc}")
 async def consultar_persona(nro_doc: str, 
-                           credentials: HTTPAuthCredentials = Depends(security)):
+                           credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Consulta una persona por documento"""
     
     try:
@@ -107,7 +107,7 @@ async def consultar_persona(nro_doc: str,
 @app.put("/modificar/{nro_doc}")
 async def modificar_persona(nro_doc: str, 
                            request: dict, 
-                           credentials: HTTPAuthCredentials = Depends(security)):
+                           credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Modifica datos de una persona existente"""
     
     try:
@@ -145,7 +145,7 @@ async def modificar_persona(nro_doc: str,
 
 @app.delete("/eliminar/{nro_doc}")
 async def eliminar_persona(nro_doc: str, 
-                          credentials: HTTPAuthCredentials = Depends(security)):
+                          credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Elimina una persona"""
     
     try:
