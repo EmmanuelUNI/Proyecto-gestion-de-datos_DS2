@@ -6,6 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
+# Frontend install garbage
 frontend/node_modules
 frontend/package-lock.json
 
