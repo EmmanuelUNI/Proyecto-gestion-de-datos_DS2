@@ -1,21 +1,15 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional
 import httpx
-import logging
-import jwt
 from roble_db import RobleDB
-from config import config
 
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-app = FastAPI(title="Servicio de Personas")
+app = FastAPI()
 security = HTTPBearer()
 roble = RobleDB()
 
+LOGS_SERVICE = "http://servicio-logs:8004"
 
 class CrearPersonaRequest(BaseModel):
     primer_nombre: str
@@ -28,31 +22,17 @@ class CrearPersonaRequest(BaseModel):
     nro_doc: str
     tipo_doc: str
 
-
-class ModificarPersonaRequest(BaseModel):
-    """Solo los campos a modificar"""
-    primer_nombre: Optional[str] = None
-    segundo_nombre: Optional[str] = None
-    apellidos: Optional[str] = None
-    correo: Optional[str] = None
-    celular: Optional[str] = None
-    genero: Optional[str] = None
-
-
-
-
 @app.post("/crear")
 async def crear_persona(request: CrearPersonaRequest, 
                        credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Crea una nueva persona"""
+    """Crea una nueva persona con validaciones"""
     try:
-        logger.info(f"Creando persona con documento: {request.nro_doc}")
-        
+       
+        # Verificar que no exista previamente
         existente = await roble.obtener_persona(request.nro_doc, credentials.credentials)
         if existente:
-            logger.warning(f"Documento ya existe: {request.nro_doc}")
             raise HTTPException(status_code=409, detail="Documento ya registrado")
-        
+        # Insertar en ROBLE
         persona_data = {
             "primer_nombre": request.primer_nombre,
             "segundo_nombre": request.segundo_nombre or "",
@@ -64,10 +44,9 @@ async def crear_persona(request: CrearPersonaRequest,
             "nro_doc": request.nro_doc,
             "tipo_doc": request.tipo_doc
         }
-        
-
         resultado = await roble.insertar_persona(persona_data, credentials.credentials)
         
+        # Registrar en log
         await _registrar_log(
             tipo_operacion="CREAR",
             usuario_email=_extraer_email(credentials.credentials),
@@ -75,27 +54,20 @@ async def crear_persona(request: CrearPersonaRequest,
             descripcion=f"Creada persona: {request.primer_nombre} {request.apellidos}"
         )
         
-        logger.info(f"Persona creada exitosamente: {request.nro_doc}")
-        return {"status": "success", "message": "Persona creada exitosamente", "data": resultado}
+        return {"status": "success", "data": resultado}
         
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error creando persona: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/consultar/{nro_doc}")
 async def consultar_persona(nro_doc: str, 
                            credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Consulta una persona por número de documento"""
+    """Consulta una persona por documento"""
+    
     try:
-        logger.info(f"Consultando persona: {nro_doc}")
-        
         resultado = await roble.obtener_persona(nro_doc, credentials.credentials)
         
         if not resultado:
-            logger.warning(f"Persona no encontrada: {nro_doc}")
             raise HTTPException(status_code=404, detail="Persona no encontrada")
         
         # Registrar en log
@@ -106,73 +78,53 @@ async def consultar_persona(nro_doc: str,
             descripcion="Consultada información personal"
         )
         
-        logger.info(f"Persona consultada: {nro_doc}")
         return {"status": "success", "data": resultado}
         
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error consultando persona: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/modificar/{nro_doc}")
 async def modificar_persona(nro_doc: str, 
-                           request: ModificarPersonaRequest,
+                           request: dict, 
                            credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Modifica datos de una persona existente"""
+    
     try:
-        logger.info(f"Modificando persona: {nro_doc}")
-        
+        # Verificar que existe
         existente = await roble.obtener_persona(nro_doc, credentials.credentials)
         if not existente:
-            logger.warning(f"Persona no encontrada para modificar: {nro_doc}")
             raise HTTPException(status_code=404, detail="Persona no encontrada")
         
-        updates = {}
-        for field, value in request.dict(exclude_unset=True).items():
-            if value is not None:
-                updates[field] = value
+        resultado = await roble.actualizar_persona(nro_doc, request, credentials.credentials)
         
-        if not updates:
-            raise HTTPException(status_code=400, detail="No hay campos para actualizar")
-        
-
-        resultado = await roble.actualizar_persona(nro_doc, updates, credentials.credentials)
-        
-
+        # Registrar en log
         await _registrar_log(
             tipo_operacion="MODIFICAR",
             usuario_email=_extraer_email(credentials.credentials),
             documento=nro_doc,
-            descripcion=f"Modificados campos: {', '.join(updates.keys())}"
+            descripcion=f"Modificados campos: {', '.join(request.keys())}"
         )
         
-        logger.info(f"Persona modificada: {nro_doc}")
-        return {"status": "success", "message": "Persona actualizada", "data": resultado}
+        return {"status": "success", "data": resultado}
         
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error modificando persona: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/eliminar/{nro_doc}")
 async def eliminar_persona(nro_doc: str, 
                           credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Elimina una persona"""
+    
     try:
-        logger.info(f"Eliminando persona: {nro_doc}")
-        
-
+        # Verificar que existe
         existente = await roble.obtener_persona(nro_doc, credentials.credentials)
         if not existente:
-            logger.warning(f"Persona no encontrada para eliminar: {nro_doc}")
             raise HTTPException(status_code=404, detail="Persona no encontrada")
         
-
+        # Eliminar
         resultado = await roble.eliminar_persona(nro_doc, credentials.credentials)
-
+        
+        # Registrar en log
         await _registrar_log(
             tipo_operacion="ELIMINAR",
             usuario_email=_extraer_email(credentials.credentials),
@@ -180,28 +132,17 @@ async def eliminar_persona(nro_doc: str,
             descripcion="Eliminada persona del sistema"
         )
         
-        logger.info(f"Persona eliminada: {nro_doc}")
-        return {"status": "success", "message": "Persona eliminada correctamente"}
+        return {"status": "success", "message": "Persona eliminada"}
         
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error eliminando persona: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
-
-@app.get("/health")
-async def health_check():
-    """Health check para Docker"""
-    return {"status": "healthy", "service": "personas"}
-
+        raise HTTPException(status_code=500, detail=str(e))
 
 async def _registrar_log(tipo_operacion, usuario_email, documento, descripcion):
     """Registra operación en servicio de logs"""
     try:
-        async with httpx.AsyncClient(timeout=config.SERVICE_TIMEOUT) as client:
+        async with httpx.AsyncClient() as client:
             await client.post(
-                f"{config.LOGS_SERVICE_URL}/registrar",
+                f"{LOGS_SERVICE}/registrar",
                 json={
                     "tipo_operacion": tipo_operacion,
                     "usuario_email": usuario_email,
@@ -209,15 +150,14 @@ async def _registrar_log(tipo_operacion, usuario_email, documento, descripcion):
                     "descripcion": descripcion
                 }
             )
-    except Exception as e:
-        logger.warning(f"No se pudo registrar en log: {str(e)}")
-
+    except:
+        pass  # No bloquear si falla el log
 
 def _extraer_email(token):
-    """Extrae email del token JWT"""
+    """Extrae email del token (implementación simplificada)"""
+    import jwt
     try:
         payload = jwt.decode(token, options={"verify_signature": False})
         return payload.get("email", "desconocido")
-    except Exception as e:
-        logger.warning(f"Error extrayendo email del token: {str(e)}")
+    except:
         return "desconocido"
