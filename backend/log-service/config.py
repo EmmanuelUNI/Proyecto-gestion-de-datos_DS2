@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 from pydantic import Field
 
 class Config(BaseSettings):
-    """Configuración centralizada del servicio de personas"""
+    """Configuración centralizada del servicio de logs"""
 
     # ========== ROBLE API ==========
     ROBLE_API_URL: str = Field(default="https://roble-api.openlab.uninorte.edu.co")
@@ -12,16 +12,12 @@ class Config(BaseSettings):
     def ROBLE_DATABASE_URL(self) -> str:
         return f"{self.ROBLE_API_URL}/database/{self.ROBLE_DB_NAME}"
 
-    # ========== SERVICIOS EXTERNOS ==========
-    LOGS_SERVICE_URL: str = Field(default="http://log-service:8006")
-
     # ========== TIMEOUTS ==========
     ROBLE_TIMEOUT: int = 30
-    SERVICE_TIMEOUT: int = 5
 
     # ========== TABLAS ROBLE ==========
-    TABLA_PERSONAS: str = "persona"
-    PERSONA_ID_COLUMN: str = "nro_doc"
+    TABLA_LOGS: str = "log"
+    LOG_ID_COLUMN: str = "_id"
 
     # ========== LOGGING ==========
     DEBUG: bool = Field(default=False)

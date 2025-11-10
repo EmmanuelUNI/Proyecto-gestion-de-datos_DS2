@@ -5,10 +5,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY ../common ./common
-COPY main.py .
+COPY comun ./comun
+COPY requirements.txt .
+COPY modificar_service/main.py .
 
-COPY ../requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 

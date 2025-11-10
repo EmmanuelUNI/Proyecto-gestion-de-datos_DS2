@@ -38,7 +38,8 @@ async def crear_persona(request: CrearPersonaRequest, credentials: HTTPAuthoriza
         resultado = await roble.insertar_persona(persona_data, credentials.credentials)
 
         await _registrar_log("CREAR", _extraer_email(credentials.credentials), request.nro_doc,
-                             f"Creada persona {request.primer_nombre} {request.apellidos}")
+                             f"Creada persona {request.primer_nombre} {request.apellidos}",
+                             credentials.credentials)
         return {"status": "success", "data": resultado}
     except Exception as e:
         logger.error(f"Error: {str(e)}")
@@ -47,12 +48,21 @@ async def crear_persona(request: CrearPersonaRequest, credentials: HTTPAuthoriza
 @app.get("/health")
 async def health(): return {"status": "healthy", "service": "crear_persona"}
 
-async def _registrar_log(tipo, email, doc, desc):
+async def _registrar_log(tipo, email, doc, desc, token):
     try:
+        headers = {"Authorization": f"Bearer {token}"}
         async with httpx.AsyncClient(timeout=config.SERVICE_TIMEOUT) as client:
-            await client.post(f"{config.LOGS_SERVICE_URL}/registrar",
-                json={"tipo_operacion": tipo, "usuario_email": email, "documento": doc, "descripcion": desc})
-    except Exception as e: logger.warning(f"No se registró log: {str(e)}")
+            await client.post(
+                f"{config.LOGS_SERVICE_URL}/registrar",
+                json={
+                    "tipo_operacion": tipo,
+                    "usuario_email": email,
+                    "documento_afectado": doc,
+                },
+                headers=headers
+            )
+    except Exception as e:
+        logger.warning(f"No se registró log: {str(e)}")
 
 def _extraer_email(token):
     try: return jwt.decode(token, options={"verify_signature": False}).get("email", "desconocido")
