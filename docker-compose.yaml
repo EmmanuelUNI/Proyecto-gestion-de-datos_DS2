@@ -1,9 +1,8 @@
-
 services:
 
   api-gateway:
     build: 
-      context: ./api-gateway
+      context: ./backend/api-gateway
     container_name: api-gateway
     ports:
       - "8000:8000"
@@ -17,10 +16,12 @@ services:
     restart: unless-stopped
     networks:
       - backend-network
+      - frontend-network 
 
+  
   auth-service:
     build:
-      context: ./auth-service
+      context: ./backend/auth-service
     container_name: auth-service
     ports:
       - "8001:8001"
@@ -31,7 +32,7 @@ services:
 
   log-service:
     build:
-      context: ./log-service
+      context: ./backend/log-service
     container_name: log-service
     ports:
       - "8006:8006"
@@ -41,7 +42,7 @@ services:
 
   crear-service:
     build:
-      context: ./person-service
+      context: ./backend/person-service
       dockerfile: crear_service/Dockerfile
     container_name: crear-service
     ports:
@@ -52,7 +53,7 @@ services:
 
   consultar-service:
     build:
-      context: ./person-service
+      context: ./backend/person-service
       dockerfile: consultar_service/Dockerfile
     container_name: consultar-service
     ports:
@@ -63,7 +64,7 @@ services:
 
   modificar-service:
     build:
-      context: ./person-service
+      context: ./backend/person-service
       dockerfile: modificar_service/Dockerfile
     container_name: modificar-service
     ports:
@@ -74,7 +75,7 @@ services:
 
   borrar-service:
     build:
-      context: ./person-service
+      context: ./backend/person-service
       dockerfile: borrar_service/Dockerfile
     container_name: borrar-service
     ports:
@@ -83,6 +84,22 @@ services:
     networks:
       - backend-network
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gestion-personas-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    networks:
+      - frontend-network  
+
+
 networks:
   backend-network:
+    driver: bridge
+  frontend-network:
     driver: bridge
