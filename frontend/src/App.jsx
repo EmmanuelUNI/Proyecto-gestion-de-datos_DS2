@@ -30,6 +30,76 @@ const validaciones = {
   }
 };
 
+const Button = ({ onClick, children, variant = 'primary', disabled = false, className = '' }) => {
+  const baseStyle = 'px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center gap-2';
+  const variants = {
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed',
+    danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed',
+    secondary: 'bg-gray-300 text-black hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed'
+  };
+  return (
+    <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
+      {children}
+    </button>
+  );
+};
+
+const Card = ({ title, children }) => (
+  <div className="bg-white rounded-lg shadow-md p-6 mb-4">
+    <h2 className="text-xl font-bold mb-4 text-gray-800">{title}</h2>
+    {children}
+  </div>
+);
+
+const Input = ({ label, type = 'text', value, onChange, error, required = false, placeholder = '', ...props }) => (
+  <div>
+    <label className="block text-gray-700 mb-2 font-medium">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+        error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-600'
+      }`}
+      {...props}
+    />
+    {error && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {error}</p>}
+  </div>
+);
+
+const Select = ({ label, value, onChange, options, error, required = false }) => (
+  <div>
+    <label className="block text-gray-700 mb-2 font-medium">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <select
+      value={value}
+      onChange={onChange}
+      className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+        error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-600'
+      }`}
+    >
+      <option value="">Seleccione...</option>
+      {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+    </select>
+    {error && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {error}</p>}
+  </div>
+);
+
+const Alert = ({ message, type }) => {
+  if (!message) return null;
+  const isError = type === 'error';
+  return (
+    <div className={`p-4 rounded-lg flex items-center gap-2 ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+      {isError ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
+      <span>{message}</span>
+    </div>
+  );
+};
+
 export default function App() {
   const [currentView, setCurrentView] = useState('login');
   const [token, setToken] = useState(null);
@@ -347,76 +417,6 @@ export default function App() {
       setLogs([]);
     }
     setLoading(false);
-  };
-
-  const Button = ({ onClick, children, variant = 'primary', disabled = false, className = '' }) => {
-    const baseStyle = 'px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center gap-2';
-    const variants = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed',
-      danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed',
-      secondary: 'bg-gray-300 text-black hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed'
-    };
-    return (
-      <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
-        {children}
-      </button>
-    );
-  };
-
-  const Card = ({ title, children }) => (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">{title}</h2>
-      {children}
-    </div>
-  );
-
-  const Input = ({ label, type = 'text', value, onChange, error, required = false, placeholder = '', ...props }) => (
-    <div>
-      <label className="block text-gray-700 mb-2 font-medium">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-          error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-600'
-        }`}
-        {...props}
-      />
-      {error && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {error}</p>}
-    </div>
-  );
-
-  const Select = ({ label, value, onChange, options, error, required = false }) => (
-    <div>
-      <label className="block text-gray-700 mb-2 font-medium">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <select
-        value={value}
-        onChange={onChange}
-        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-          error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-600'
-        }`}
-      >
-        <option value="">Seleccione...</option>
-        {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-      </select>
-      {error && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {error}</p>}
-    </div>
-  );
-
-  const Alert = ({ message, type }) => {
-    if (!message) return null;
-    const isError = type === 'error';
-    return (
-      <div className={`p-4 rounded-lg flex items-center gap-2 ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-        {isError ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
-        <span>{message}</span>
-      </div>
-    );
   };
 
   if (!token) {
