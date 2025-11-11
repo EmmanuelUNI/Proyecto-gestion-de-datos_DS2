@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 
-const API_URL = 'http://localhost:8880';
+const API_URL = '';
 
 const validaciones = {
   email: (value) => {
@@ -18,9 +18,6 @@ const validaciones = {
   },
   nombre: (value) => {
     return value && value.trim().length >= 2 ? null : 'Mínimo 2 caracteres';
-  },
-  requerido: (value) => {
-    return value && value.trim() ? null : 'Este campo es requerido';
   },
   fecha: (value) => {
     if (!value) return 'Fecha requerida';
@@ -101,7 +98,8 @@ export default function App() {
         showMessage(data.detail || 'Credenciales inválidas', 'error');
       }
     } catch (error) {
-      showMessage('Error de conexión: ' + error.message, 'error');
+      showMessage('Error de conexión. Verifique que el backend esté corriendo en puerto 8000', 'error');
+      console.error('Error:', error);
     }
     setLoading(false);
   };
