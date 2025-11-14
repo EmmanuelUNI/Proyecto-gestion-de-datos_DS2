@@ -28,6 +28,52 @@ class RobleAuthClient:
                 
         except httpx.RequestError as e:
             raise Exception(f"Error conectando a ROBLE: {str(e)}")
+        
+    async def signup(self, email: str, password: str, name: str) -> Dict:
+        """
+        Crea un usuario nuevo en Roble usando el endpoint /signup
+        """
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    config.ROBLE_AUTH_SIGNUP, 
+                    json={
+                        "email": email,
+                        "password": password,
+                        "name": name
+                    }
+                )
+
+                if response.status_code not in [200, 201]:
+                    raise Exception(
+                        f"Error en signup: {response.status_code} - {response.text}"
+                    )
+
+                return response.json()
+
+        except httpx.RequestError as e:
+            raise Exception(f"Error conectando a ROBLE en signup: {str(e)}")
+        
+    async def verify_email(self, email: str, code: str) -> Dict:
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    config.ROBLE_AUTH_VERIFY_EMAIL,
+                    json={
+                        "email": email,
+                        "code": code
+                    }
+                )
+
+                if response.status_code not in [200, 201]:
+                    raise Exception(
+                        f"ROBLE retornó {response.status_code}: {response.text}"
+                    )
+
+                return response.json()
+
+        except httpx.RequestError as e:
+            raise Exception(f"Error verificando email en ROBLE: {str(e)}")
     
     async def verify_token(self, token: str) -> Dict:
         try:

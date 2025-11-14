@@ -21,7 +21,9 @@ class Config:
     ROBLE_AUTH_LOGIN = f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/login"
     ROBLE_AUTH_VERIFY = f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/verify-token"
     ROBLE_AUTH_LOGOUT = f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/logout"
-    
+    ROBLE_AUTH_SIGNUP = f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/signup"
+    ROBLE_AUTH_VERIFY_EMAIL = f"{ROBLE_API_URL}/auth/{ROBLE_DB_NAME}/verify-email"
+
     # Timeouts
     HTTP_TIMEOUT = 30
     

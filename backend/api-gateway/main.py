@@ -57,6 +57,16 @@ async def login(request: dict):
     """Ruta de autenticación"""
     return await _forward_request("POST", f"{AUTH_URL}/autenticar", json=request)
 
+@app.post("/auth/signup")
+async def signup(request: dict):
+    """Ruta de registro de usuario"""
+    return await _forward_request("POST", f"{AUTH_URL}/signup", json=request)
+
+@app.post("/auth/verify-email")
+async def verify_email(request: dict):
+    """Ruta de verificación de email"""
+    return await _forward_request("POST", f"{AUTH_URL}/verify-email", json=request)
+
 
 @app.post("/personas/crear")
 async def crear_persona(request: dict, credentials: HTTPAuthorizationCredentials = Depends(security)):

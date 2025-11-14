@@ -44,7 +44,16 @@ class ValidateTokenResponse(BaseModel):
     class Config:
         json_schema_extra = {"example": {"valid": True, "roble_data": {}}}
 
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+    name: str
+    
 
+class VerifyEmailRequest(BaseModel):
+    email: str
+    code: str
+    
 # Endpoints
 
 @app.post("/autenticar", response_model=LoginResponse)
@@ -82,7 +91,55 @@ async def login(request: LoginRequest):
             detail=f"Error de autenticación: {str(e)}"
         )
 
+@app.post("/signup")
+async def signup_roble(data: SignupRequest):
+    try:
+        logger.info("Creando usuario en ROBLE...")
 
+        response = await roble_client.signup(
+            email=data.email,
+            password=data.password,
+            name=data.name
+        )
+
+        logger.info("Usuario creado correctamente")
+
+        return {
+            "message": "Usuario creado correctamente",
+            "data": response
+        }
+
+    except Exception as e:
+        logger.error(f"Error en signup: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error creando usuario: {str(e)}"
+        )
+        
+@app.post("/verify-email")
+async def verify_email_roble(data: VerifyEmailRequest):
+    try:
+        logger.info(f"Verificando email para {data.email}...")
+
+        response = await roble_client.verify_email(
+            email=data.email,
+            code=data.code
+        )
+
+        logger.info("Email verificado correctamente")
+
+        return {
+            "message": "Email verificado correctamente",
+            "data": response
+        }
+
+    except Exception as e:
+        logger.error(f"Error verificando email: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error verificando email: {str(e)}"
+        )
+        
 @app.get("/validar-token", response_model=ValidateTokenResponse)
 async def validar_token_roble(
     credentials: HTTPAuthorizationCredentials = Depends(security)
