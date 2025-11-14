@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users } from 'lucide-react';
 
 const API_URL = '';
 
@@ -31,11 +31,11 @@ const validaciones = {
 };
 
 const Button = ({ onClick, children, variant = 'primary', disabled = false, className = '' }) => {
-  const baseStyle = 'px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center gap-2';
+  const baseStyle = 'px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl';
   const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed',
-    danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed',
-    secondary: 'bg-gray-300 text-black hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed'
+    primary: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed',
+    danger: 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed',
+    secondary: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed'
   };
   return (
     <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
@@ -44,48 +44,70 @@ const Button = ({ onClick, children, variant = 'primary', disabled = false, clas
   );
 };
 
-const Card = ({ title, children }) => (
-  <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-    <h2 className="text-xl font-bold mb-4 text-gray-800">{title}</h2>
+const Card = ({ title, children, className = '' }) => (
+  <div className={`bg-white rounded-2xl shadow-xl p-8 mb-6 transform transition-all duration-300 hover:shadow-2xl border border-gray-100 animate-fadeIn ${className}`}>
+    <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
+      <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-blue-800 rounded-full"></div>
+      {title}
+    </h2>
     {children}
   </div>
 );
 
-const Input = ({ label, type = 'text', value, onChange, error, required = false, placeholder = '', ...props }) => (
-  <div>
-    <label className="block text-gray-700 mb-2 font-medium">
+const Input = ({ label, type = 'text', value, onChange, error, required = false, placeholder = '', icon: Icon, ...props }) => (
+  <div className="group">
+    <label className="block text-gray-700 mb-2 font-semibold text-sm">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-        error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-600'
-      }`}
-      {...props}
-    />
-    {error && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {error}</p>}
+    <div className="relative">
+      {Icon && (
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+          <Icon size={20} />
+        </div>
+      )}
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+          error ? 'border-red-500 focus:ring-red-500 bg-red-50' : 'border-gray-200 focus:ring-blue-600 focus:border-blue-600 bg-gray-50 hover:bg-white'
+        }`}
+        {...props}
+      />
+    </div>
+    {error && <p className="text-red-500 text-sm mt-2 flex items-center gap-1 animate-slideDown"><AlertCircle size={14} /> {error}</p>}
   </div>
 );
 
-const Select = ({ label, value, onChange, options, error, required = false }) => (
-  <div>
-    <label className="block text-gray-700 mb-2 font-medium">
+const Select = ({ label, value, onChange, options, error, required = false, icon: Icon }) => (
+  <div className="group">
+    <label className="block text-gray-700 mb-2 font-semibold text-sm">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
-    <select
-      value={value}
-      onChange={onChange}
-      className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-        error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-600'
-      }`}
-    >
-      <option value="">Seleccione...</option>
-      {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-    </select>
-    {error && <p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} /> {error}</p>}
+    <div className="relative">
+      {Icon && (
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10">
+          <Icon size={20} />
+        </div>
+      )}
+      <select
+        value={value}
+        onChange={onChange}
+        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 appearance-none bg-gray-50 hover:bg-white ${
+          error ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-blue-600 focus:border-blue-600'
+        }`}
+      >
+        <option value="">Seleccione...</option>
+        {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+      </select>
+      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+    {error && <p className="text-red-500 text-sm mt-2 flex items-center gap-1 animate-slideDown"><AlertCircle size={14} /> {error}</p>}
   </div>
 );
 
@@ -93,12 +115,32 @@ const Alert = ({ message, type }) => {
   if (!message) return null;
   const isError = type === 'error';
   return (
-    <div className={`p-4 rounded-lg flex items-center gap-2 ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-      {isError ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
-      <span>{message}</span>
+    <div className={`p-4 rounded-xl flex items-center gap-3 animate-slideDown shadow-lg ${isError ? 'bg-red-50 text-red-700 border-2 border-red-200' : 'bg-green-50 text-green-700 border-2 border-green-200'}`}>
+      {isError ? <AlertCircle size={24} /> : <CheckCircle size={24} />}
+      <span className="font-semibold">{message}</span>
     </div>
   );
 };
+
+const StatCard = ({ title, value, icon: Icon, color, delay = 0 }) => (
+  <div 
+    className={`bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 animate-slideUp`}
+    style={{ 
+      borderColor: color,
+      animationDelay: `${delay}ms`
+    }}
+  >
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-gray-600 text-sm font-medium mb-2">{title}</p>
+        <p className="text-3xl font-bold text-gray-800">{value}</p>
+      </div>
+      <div className={`p-4 rounded-xl`} style={{ backgroundColor: color + '20' }}>
+        <Icon size={32} style={{ color }} />
+      </div>
+    </div>
+  </div>
+);
 
 export default function App() {
   const [currentView, setCurrentView] = useState('login');
@@ -109,6 +151,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
+  const [stats, setStats] = useState({ total: 0, created: 0, modified: 0, consulted: 0 });
 
   const [formCrear, setFormCrear] = useState({
     primer_nombre: '',
@@ -130,6 +173,32 @@ export default function App() {
 
   const [filtroLogs, setFiltroLogs] = useState({ tipo_operacion: '', documento: '' });
   const [logs, setLogs] = useState([]);
+
+  useEffect(() => {
+    if (token && currentView === 'menu') {
+      fetchStats();
+    }
+  }, [token, currentView]);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`${API_URL}/logs`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (response.ok && data.data) {
+        const logsData = Array.isArray(data.data) ? data.data : [];
+        setStats({
+          total: logsData.length,
+          created: logsData.filter(l => l.tipo_operacion === 'CREAR').length,
+          modified: logsData.filter(l => l.tipo_operacion === 'MODIFICAR').length,
+          consulted: logsData.filter(l => l.tipo_operacion === 'CONSULTAR').length
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   const showMessage = (msg, type = 'success') => {
     setMessage(msg);
@@ -421,17 +490,33 @@ export default function App() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Gestión de Personas</h1>
-          <div className="space-y-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        </div>
+
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
+          <div className="text-center mb-8">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
+              <Users size={40} className="text-white" />
+            </div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Sistema de Gestión</h1>
+            <p className="text-gray-600 font-medium">Plataforma de Datos Personales</p>
+          </div>
+
+          <div className="space-y-5">
             <Input
-              label="Email"
+              label="Correo Electrónico"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="correo@ejemplo.com"
+              icon={Mail}
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
             />
             <Input
               label="Contraseña"
@@ -440,12 +525,30 @@ export default function App() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
+              icon={AlertCircle}
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
             />
-            <Button onClick={handleLogin} disabled={loading} className="w-full">
-              {loading ? 'Cargando...' : 'Iniciar Sesión'}
+            <Button onClick={handleLogin} disabled={loading} className="w-full text-lg py-4">
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Cargando...
+                </>
+              ) : (
+                <>
+                  <LogOut size={20} className="rotate-180" />
+                  Iniciar Sesión
+                </>
+              )}
             </Button>
           </div>
-          {message && <div className="mt-4"><Alert message={message} type={messageType} /></div>}
+
+          {message && <div className="mt-6"><Alert message={message} type={messageType} /></div>}
+
+          <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+            <p className="text-sm text-gray-500">Sistema Empresarial de Gestión de Datos</p>
+            <p className="text-xs text-gray-400 mt-1">Versión 2.0 - Seguro y Confiable</p>
+          </div>
         </div>
       </div>
     );
@@ -453,38 +556,99 @@ export default function App() {
 
   if (currentView === 'menu') {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="bg-blue-600 text-white p-4 flex justify-between items-center shadow-lg">
-          <div>
-            <h1 className="text-2xl font-bold">Sistema de Gestión de Personas</h1>
-            <p className="text-sm opacity-90">Usuario: {userEmail}</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white shadow-2xl">
+          <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/10 backdrop-blur-sm p-3 rounded-xl">
+                <Users size={32} />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold">Sistema de Gestión de Personas</h1>
+                <p className="text-blue-200 text-sm flex items-center gap-2 mt-1">
+                  <User size={16} />
+                  {userEmail}
+                </p>
+              </div>
+            </div>
+            <Button variant="danger" onClick={handleLogout}>
+              <LogOut size={20} /> Cerrar Sesión
+            </Button>
           </div>
-          <Button variant="danger" onClick={handleLogout}>
-            <LogOut size={20} /> Salir
-          </Button>
         </div>
-        <div className="max-w-6xl mx-auto p-6">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">Menú Principal</h2>
+
+        <div className="max-w-7xl mx-auto p-8">
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <StatCard title="Total de Operaciones" value={stats.total} icon={FileText} color="#3B82F6" delay={0} />
+            <StatCard title="Personas Creadas" value={stats.created} icon={Plus} color="#10B981" delay={100} />
+            <StatCard title="Modificaciones" value={stats.modified} icon={Edit2} color="#F59E0B" delay={200} />
+            <StatCard title="Consultas" value={stats.consulted} icon={Search} color="#8B5CF6" delay={300} />
+          </div>
+
+          <h2 className="text-3xl font-bold mb-6 text-gray-800">Panel de Control</h2>
+
+          {/* Menu Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <button onClick={() => setCurrentView('crear')} className="bg-green-500 hover:bg-green-600 text-white p-8 rounded-lg text-center font-bold transition-all transform hover:scale-105 shadow-lg">
-              <Plus size={48} className="mx-auto mb-3" />
-              <span className="text-lg">Crear Personas</span>
+            <button 
+              onClick={() => setCurrentView('crear')} 
+              className="group bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              style={{ animationDelay: '0ms' }}
+            >
+              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Plus size={48} />
+              </div>
+              <span className="text-xl">Crear Personas</span>
+              <p className="text-green-100 text-sm mt-2 opacity-90">Registrar nuevas personas en el sistema</p>
             </button>
-            <button onClick={() => setCurrentView('consultar')} className="bg-blue-500 hover:bg-blue-600 text-white p-8 rounded-lg text-center font-bold transition-all transform hover:scale-105 shadow-lg">
-              <Search size={48} className="mx-auto mb-3" />
-              <span className="text-lg">Consultar Datos</span>
+
+            <button 
+              onClick={() => setCurrentView('consultar')} 
+              className="group bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              style={{ animationDelay: '100ms' }}
+            >
+              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Search size={48} />
+              </div>
+              <span className="text-xl">Consultar Datos</span>
+              <p className="text-blue-100 text-sm mt-2 opacity-90">Buscar información de personas</p>
             </button>
-            <button onClick={() => setCurrentView('modificar')} className="bg-orange-500 hover:bg-orange-600 text-white p-8 rounded-lg text-center font-bold transition-all transform hover:scale-105 shadow-lg">
-              <Edit2 size={48} className="mx-auto mb-3" />
-              <span className="text-lg">Modificar Datos</span>
+
+            <button 
+              onClick={() => setCurrentView('modificar')} 
+              className="group bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              style={{ animationDelay: '200ms' }}
+            >
+              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Edit2 size={48} />
+              </div>
+              <span className="text-xl">Modificar Datos</span>
+              <p className="text-orange-100 text-sm mt-2 opacity-90">Actualizar información existente</p>
             </button>
-            <button onClick={() => setCurrentView('eliminar')} className="bg-red-500 hover:bg-red-600 text-white p-8 rounded-lg text-center font-bold transition-all transform hover:scale-105 shadow-lg">
-              <Trash2 size={48} className="mx-auto mb-3" />
-              <span className="text-lg">Eliminar Personas</span>
+
+            <button 
+              onClick={() => setCurrentView('eliminar')} 
+              className="group bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              style={{ animationDelay: '300ms' }}
+            >
+              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Trash2 size={48} />
+              </div>
+              <span className="text-xl">Eliminar Personas</span>
+              <p className="text-red-100 text-sm mt-2 opacity-90">Remover registros del sistema</p>
             </button>
-            <button onClick={() => setCurrentView('logs')} className="bg-gray-600 hover:bg-gray-700 text-white p-8 rounded-lg text-center font-bold transition-all transform hover:scale-105 shadow-lg">
-              <FileText size={48} className="mx-auto mb-3" />
-              <span className="text-lg">Consultar Logs</span>
+
+            <button 
+              onClick={() => setCurrentView('logs')} 
+              className="group bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              style={{ animationDelay: '400ms' }}
+            >
+              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <FileText size={48} />
+              </div>
+              <span className="text-xl">Consultar Logs</span>
+              <p className="text-purple-100 text-sm mt-2 opacity-90">Historial de operaciones</p>
             </button>
           </div>
         </div>
@@ -494,27 +658,36 @@ export default function App() {
 
   if (currentView === 'crear') {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="bg-blue-600 text-white p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-700 text-white p-6 shadow-xl">
           <Button variant="secondary" onClick={() => setCurrentView('menu')} className="mb-4">
             ← Volver al Menú
           </Button>
-          <h1 className="text-2xl font-bold">Crear Nueva Persona</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Plus size={32} />
+            Crear Nueva Persona
+          </h1>
+          <p className="text-green-100 mt-2">Complete el formulario para registrar una nueva persona</p>
         </div>
-        <div className="max-w-3xl mx-auto p-6">
+
+        <div className="max-w-5xl mx-auto p-8">
           <Card title="Formulario de Registro">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <Input
                 label="Primer Nombre"
                 value={formCrear.primer_nombre}
                 onChange={(e) => setFormCrear({...formCrear, primer_nombre: e.target.value})}
                 error={erroresCrear.primer_nombre}
                 required
+                icon={User}
+                placeholder="Juan"
               />
               <Input
                 label="Segundo Nombre"
                 value={formCrear.segundo_nombre}
                 onChange={(e) => setFormCrear({...formCrear, segundo_nombre: e.target.value})}
+                icon={User}
+                placeholder="Carlos (opcional)"
               />
               <Input
                 label="Apellidos"
@@ -522,6 +695,8 @@ export default function App() {
                 onChange={(e) => setFormCrear({...formCrear, apellidos: e.target.value})}
                 error={erroresCrear.apellidos}
                 required
+                icon={User}
+                placeholder="Pérez García"
               />
               <Input
                 label="Fecha de Nacimiento"
@@ -530,6 +705,7 @@ export default function App() {
                 onChange={(e) => setFormCrear({...formCrear, fecha_nacimiento: e.target.value})}
                 error={erroresCrear.fecha_nacimiento}
                 required
+                icon={Calendar}
               />
               <Select
                 label="Género"
@@ -542,6 +718,7 @@ export default function App() {
                 ]}
                 error={erroresCrear.genero}
                 required
+                icon={User}
               />
               <Select
                 label="Tipo de Documento"
@@ -555,6 +732,7 @@ export default function App() {
                 ]}
                 error={erroresCrear.tipo_doc}
                 required
+                icon={CreditCard}
               />
               <Input
                 label="Número de Documento"
@@ -563,6 +741,7 @@ export default function App() {
                 error={erroresCrear.nro_doc}
                 required
                 placeholder="1234567890"
+                icon={CreditCard}
               />
               <Input
                 label="Correo Electrónico"
@@ -572,6 +751,7 @@ export default function App() {
                 error={erroresCrear.correo}
                 required
                 placeholder="correo@ejemplo.com"
+                icon={Mail}
               />
               <Input
                 label="Celular"
@@ -580,10 +760,21 @@ export default function App() {
                 error={erroresCrear.celular}
                 required
                 placeholder="3001234567"
+                icon={Phone}
               />
             </div>
-            <Button onClick={handleCrearPersona} disabled={loading} className="w-full">
-              {loading ? 'Guardando...' : 'Crear Persona'}
+            <Button onClick={handleCrearPersona} disabled={loading} className="w-full text-lg py-4">
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Plus size={24} />
+                  Crear Persona
+                </>
+              )}
             </Button>
           </Card>
           {message && <Alert message={message} type={messageType} />}
@@ -594,14 +785,19 @@ export default function App() {
 
   if (currentView === 'consultar') {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="bg-blue-600 text-white p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 shadow-xl">
           <Button variant="secondary" onClick={() => setCurrentView('menu')} className="mb-4">
             ← Volver al Menú
           </Button>
-          <h1 className="text-2xl font-bold">Consultar Datos Personales</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Search size={32} />
+            Consultar Datos Personales
+          </h1>
+          <p className="text-blue-100 mt-2">Busque información de personas registradas</p>
         </div>
-        <div className="max-w-2xl mx-auto p-6">
+
+        <div className="max-w-4xl mx-auto p-8">
           <Card title="Buscar Persona">
             <div className="flex gap-4">
               <Input
@@ -610,40 +806,55 @@ export default function App() {
                 onChange={(e) => setNroDocConsulta(e.target.value)}
                 placeholder="1234567890"
                 className="flex-1"
+                icon={CreditCard}
+                onKeyPress={(e) => e.key === 'Enter' && handleConsultarPersona()}
               />
               <div className="flex items-end">
-                <Button onClick={handleConsultarPersona} disabled={loading}>
+                <Button onClick={handleConsultarPersona} disabled={loading} className="px-8">
                   <Search size={20} /> {loading ? 'Buscando...' : 'Buscar'}
                 </Button>
               </div>
             </div>
           </Card>
+
           {personaConsultada && (
-            <Card title="Información de la Persona">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Nombre Completo</p>
-                  <p className="font-semibold">{personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}</p>
+            <Card title="Información de la Persona" className="border-l-4 border-blue-600">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl mb-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}
+                </h3>
+                <p className="text-blue-700 font-semibold">{personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Mail className="text-blue-600" size={20} />
+                    <p className="text-sm text-gray-600 font-semibold">Correo Electrónico</p>
+                  </div>
+                  <p className="font-semibold text-gray-800 ml-8">{personaConsultada.correo}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Documento</p>
-                  <p className="font-semibold">{personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Phone className="text-green-600" size={20} />
+                    <p className="text-sm text-gray-600 font-semibold">Celular</p>
+                  </div>
+                  <p className="font-semibold text-gray-800 ml-8">{personaConsultada.celular}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Correo</p>
-                  <p className="font-semibold">{personaConsultada.correo}</p>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Calendar className="text-purple-600" size={20} />
+                    <p className="text-sm text-gray-600 font-semibold">Fecha de Nacimiento</p>
+                  </div>
+                  <p className="font-semibold text-gray-800 ml-8">{personaConsultada.fecha_nacimiento}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Celular</p>
-                  <p className="font-semibold">{personaConsultada.celular}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Fecha de Nacimiento</p>
-                  <p className="font-semibold">{personaConsultada.fecha_nacimiento}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Género</p>
-                  <p className="font-semibold">{personaConsultada.genero === 'M' ? 'Masculino' : personaConsultada.genero === 'F' ? 'Femenino' : 'Otro'}</p>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-2">
+                    <User className="text-orange-600" size={20} />
+                    <p className="text-sm text-gray-600 font-semibold">Género</p>
+                  </div>
+                  <p className="font-semibold text-gray-800 ml-8">
+                    {personaConsultada.genero === 'M' ? 'Masculino' : personaConsultada.genero === 'F' ? 'Femenino' : 'Otro'}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -656,8 +867,8 @@ export default function App() {
 
   if (currentView === 'modificar') {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="bg-blue-600 text-white p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-800 text-white p-6 shadow-xl">
           <Button variant="secondary" onClick={() => {
             setCurrentView('menu');
             setPersonaConsultada(null);
@@ -666,9 +877,14 @@ export default function App() {
           }} className="mb-4">
             ← Volver al Menú
           </Button>
-          <h1 className="text-2xl font-bold">Modificar Datos Personales</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Edit2 size={32} />
+            Modificar Datos Personales
+          </h1>
+          <p className="text-orange-100 mt-2">Actualice la información de personas registradas</p>
         </div>
-        <div className="max-w-3xl mx-auto p-6">
+
+        <div className="max-w-5xl mx-auto p-8">
           {!personaConsultada ? (
             <Card title="Buscar Persona">
               <div className="flex gap-4">
@@ -678,9 +894,11 @@ export default function App() {
                   onChange={(e) => setNroDocConsulta(e.target.value)}
                   placeholder="1234567890"
                   className="flex-1"
+                  icon={CreditCard}
+                  onKeyPress={(e) => e.key === 'Enter' && handleConsultarPersona()}
                 />
                 <div className="flex items-end">
-                  <Button onClick={handleConsultarPersona} disabled={loading}>
+                  <Button onClick={handleConsultarPersona} disabled={loading} className="px-8">
                     <Search size={20} /> {loading ? 'Buscando...' : 'Buscar'}
                   </Button>
                 </div>
@@ -688,27 +906,37 @@ export default function App() {
             </Card>
           ) : (
             <>
-              <Card title="Datos Actuales">
-                <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                  <p className="font-semibold text-lg mb-2">{personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}</p>
-                  <p className="text-sm text-gray-600">Documento: {personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+              <Card title="Datos Actuales" className="border-l-4 border-orange-600">
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 rounded-xl">
+                  <p className="font-bold text-2xl mb-3 text-gray-800">
+                    {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}
+                  </p>
+                  <div className="flex items-center gap-2 text-orange-800">
+                    <CreditCard size={20} />
+                    <p className="font-semibold">Documento: {personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+                  </div>
                 </div>
               </Card>
+
               <Card title="Modificar Información">
-                <p className="text-sm text-gray-600 mb-4">Solo complete los campos que desea modificar</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <p className="text-sm text-gray-600 mb-6 bg-blue-50 p-4 rounded-xl border border-blue-200">
+                  💡 <strong>Instrucción:</strong> Solo complete los campos que desea modificar. Los campos vacíos no serán actualizados.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <Input
                     label="Primer Nombre"
                     value={formModificar.primer_nombre || ''}
                     onChange={(e) => setFormModificar({...formModificar, primer_nombre: e.target.value})}
                     error={erroresModificar.primer_nombre}
                     placeholder={personaConsultada.primer_nombre}
+                    icon={User}
                   />
                   <Input
                     label="Segundo Nombre"
                     value={formModificar.segundo_nombre || ''}
                     onChange={(e) => setFormModificar({...formModificar, segundo_nombre: e.target.value})}
                     placeholder={personaConsultada.segundo_nombre || 'Sin segundo nombre'}
+                    icon={User}
                   />
                   <Input
                     label="Apellidos"
@@ -716,6 +944,7 @@ export default function App() {
                     onChange={(e) => setFormModificar({...formModificar, apellidos: e.target.value})}
                     error={erroresModificar.apellidos}
                     placeholder={personaConsultada.apellidos}
+                    icon={User}
                   />
                   <Input
                     label="Correo Electrónico"
@@ -724,6 +953,7 @@ export default function App() {
                     onChange={(e) => setFormModificar({...formModificar, correo: e.target.value})}
                     error={erroresModificar.correo}
                     placeholder={personaConsultada.correo}
+                    icon={Mail}
                   />
                   <Input
                     label="Celular"
@@ -731,6 +961,7 @@ export default function App() {
                     onChange={(e) => setFormModificar({...formModificar, celular: e.target.value})}
                     error={erroresModificar.celular}
                     placeholder={personaConsultada.celular}
+                    icon={Phone}
                   />
                   <Select
                     label="Género"
@@ -741,18 +972,30 @@ export default function App() {
                       { value: 'F', label: 'Femenino' },
                       { value: 'O', label: 'Otro' }
                     ]}
+                    icon={User}
                   />
                 </div>
                 <div className="flex gap-4">
-                  <Button onClick={handleModificarPersona} disabled={loading} className="flex-1">
-                    {loading ? 'Guardando...' : 'Guardar Cambios'}
+                  <Button onClick={handleModificarPersona} disabled={loading} className="flex-1 text-lg py-4">
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle size={20} />
+                        Guardar Cambios
+                      </>
+                    )}
                   </Button>
                   <Button variant="secondary" onClick={() => {
                     setPersonaConsultada(null);
                     setFormModificar({});
                     setErroresModificar({});
                     setNroDocConsulta('');
-                  }} className="flex-1">
+                  }} className="flex-1 text-lg py-4">
+                    <Search size={20} />
                     Buscar Otra Persona
                   </Button>
                 </div>
@@ -767,8 +1010,8 @@ export default function App() {
 
   if (currentView === 'eliminar') {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="bg-blue-600 text-white p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-gradient-to-r from-red-600 to-red-800 text-white p-6 shadow-xl">
           <Button variant="secondary" onClick={() => {
             setCurrentView('menu');
             setPersonaConsultada(null);
@@ -776,9 +1019,14 @@ export default function App() {
           }} className="mb-4">
             ← Volver al Menú
           </Button>
-          <h1 className="text-2xl font-bold">Eliminar Personas</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Trash2 size={32} />
+            Eliminar Personas
+          </h1>
+          <p className="text-red-100 mt-2">⚠️ Esta acción es permanente y no se puede deshacer</p>
         </div>
-        <div className="max-w-2xl mx-auto p-6">
+
+        <div className="max-w-4xl mx-auto p-8">
           <Card title="Buscar Persona a Eliminar">
             <div className="flex gap-4">
               <Input
@@ -787,32 +1035,62 @@ export default function App() {
                 onChange={(e) => setNroDocConsulta(e.target.value)}
                 placeholder="1234567890"
                 className="flex-1"
+                icon={IdCard}
+                onKeyPress={(e) => e.key === 'Enter' && handleConsultarPersona()}
               />
               <div className="flex items-end">
-                <Button onClick={handleConsultarPersona} disabled={loading}>
+                <Button onClick={handleConsultarPersona} disabled={loading} className="px-8">
                   <Search size={20} /> {loading ? 'Buscando...' : 'Buscar'}
                 </Button>
               </div>
             </div>
           </Card>
+
           {personaConsultada && (
-            <Card title="Confirmar Eliminación">
-              <div className="bg-red-50 border-2 border-red-200 p-4 rounded-lg mb-4">
-                <p className="text-red-800 font-semibold mb-2">⚠️ Esta acción no se puede deshacer</p>
-                <div className="space-y-2 text-sm">
-                  <p><strong>Nombre:</strong> {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}</p>
-                  <p><strong>Documento:</strong> {personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
-                  <p><strong>Correo:</strong> {personaConsultada.correo}</p>
+            <Card title="Confirmar Eliminación" className="border-l-4 border-red-600">
+              <div className="bg-red-50 border-2 border-red-300 p-6 rounded-xl mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-red-100 p-3 rounded-full">
+                    <AlertCircle className="text-red-600" size={32} />
+                  </div>
+                  <div>
+                    <p className="text-red-800 font-bold text-lg">⚠️ Advertencia: Esta acción no se puede deshacer</p>
+                    <p className="text-red-700 text-sm">Los datos serán eliminados permanentemente del sistema</p>
+                  </div>
+                </div>
+                <div className="space-y-3 bg-white p-4 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <User className="text-gray-600" size={20} />
+                    <p><strong>Nombre:</strong> {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="text-gray-600" size={20} />
+                    <p><strong>Documento:</strong> {personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="text-gray-600" size={20} />
+                    <p><strong>Correo:</strong> {personaConsultada.correo}</p>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-4">
-                <Button variant="danger" onClick={handleEliminarPersona} disabled={loading} className="flex-1">
-                  {loading ? 'Eliminando...' : 'Confirmar Eliminación'}
+                <Button variant="danger" onClick={handleEliminarPersona} disabled={loading} className="flex-1 text-lg py-4">
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Eliminando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={20} />
+                      Confirmar Eliminación
+                    </>
+                  )}
                 </Button>
                 <Button variant="secondary" onClick={() => {
                   setPersonaConsultada(null);
                   setNroDocConsulta('');
-                }} className="flex-1">
+                }} className="flex-1 text-lg py-4">
                   Cancelar
                 </Button>
               </div>
@@ -826,14 +1104,19 @@ export default function App() {
 
   if (currentView === 'logs') {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="bg-blue-600 text-white p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 shadow-xl">
           <Button variant="secondary" onClick={() => setCurrentView('menu')} className="mb-4">
             ← Volver al Menú
           </Button>
-          <h1 className="text-2xl font-bold">Consultar Logs del Sistema</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <FileText size={32} />
+            Consultar Logs del Sistema
+          </h1>
+          <p className="text-purple-100 mt-2">Historial completo de operaciones realizadas</p>
         </div>
-        <div className="max-w-6xl mx-auto p-6">
+
+        <div className="max-w-7xl mx-auto p-8">
           <Card title="Filtros de Búsqueda">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <Select
@@ -852,6 +1135,7 @@ export default function App() {
                 value={filtroLogs.documento}
                 onChange={(e) => setFiltroLogs({...filtroLogs, documento: e.target.value})}
                 placeholder="1234567890"
+                icon={CreditCard}
               />
               <div className="flex items-end">
                 <Button onClick={handleConsultarLogs} disabled={loading} className="w-full">
@@ -866,34 +1150,39 @@ export default function App() {
               Mostrar Todos los Logs
             </Button>
           </Card>
+
           {logs.length > 0 ? (
-            <Card title={`Registros Encontrados (${logs.length})`}>
+            <Card title={`Registros Encontrados: ${logs.length} operaciones`}>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-200">
+                <table className="w-full">
+                  <thead className="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
                     <tr>
-                      <th className="p-3 text-left font-semibold">Operación</th>
-                      <th className="p-3 text-left font-semibold">Usuario</th>
-                      <th className="p-3 text-left font-semibold">Documento</th>
-                      <th className="p-3 text-left font-semibold">Fecha</th>
+                      <th className="p-4 text-left font-bold rounded-tl-xl">Operación</th>
+                      <th className="p-4 text-left font-bold">Usuario</th>
+                      <th className="p-4 text-left font-bold">Documento</th>
+                      <th className="p-4 text-left font-bold rounded-tr-xl">Fecha</th>
                     </tr>
                   </thead>
                   <tbody>
                     {logs.map((log, idx) => (
-                      <tr key={idx} className="border-b hover:bg-gray-50 transition-colors">
-                        <td className="p-3">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      <tr key={idx} className="border-b border-gray-200 hover:bg-purple-50 transition-colors animate-fadeIn" style={{ animationDelay: `${idx * 50}ms` }}>
+                        <td className="p-4">
+                          <span className={`px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center gap-2 ${
                             log.tipo_operacion === 'CREAR' ? 'bg-green-100 text-green-800' :
                             log.tipo_operacion === 'MODIFICAR' ? 'bg-orange-100 text-orange-800' :
                             log.tipo_operacion === 'ELIMINAR' ? 'bg-red-100 text-red-800' :
                             'bg-blue-100 text-blue-800'
                           }`}>
+                            {log.tipo_operacion === 'CREAR' && <Plus size={16} />}
+                            {log.tipo_operacion === 'MODIFICAR' && <Edit2 size={16} />}
+                            {log.tipo_operacion === 'ELIMINAR' && <Trash2 size={16} />}
+                            {log.tipo_operacion === 'CONSULTAR' && <Search size={16} />}
                             {log.tipo_operacion}
                           </span>
                         </td>
-                        <td className="p-3">{log.usuario_email}</td>
-                        <td className="p-3">{log.documento_afectado}</td>
-                        <td className="p-3">{new Date(log.fecha_transaccion).toLocaleString('es-CO')}</td>
+                        <td className="p-4 font-semibold text-gray-700">{log.usuario_email}</td>
+                        <td className="p-4 font-mono text-gray-800">{log.documento_afectado}</td>
+                        <td className="p-4 text-gray-600">{new Date(log.fecha_transaccion).toLocaleString('es-CO')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -902,7 +1191,12 @@ export default function App() {
             </Card>
           ) : (
             <Card title="Sin Resultados">
-              <p className="text-center text-gray-500 py-8">No se encontraron registros con los filtros seleccionados</p>
+              <div className="text-center py-12">
+                <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText size={40} className="text-gray-400" />
+                </div>
+                <p className="text-gray-500 text-lg">No se encontraron registros con los filtros seleccionados</p>
+              </div>
             </Card>
           )}
           {message && <Alert message={message} type={messageType} />}
