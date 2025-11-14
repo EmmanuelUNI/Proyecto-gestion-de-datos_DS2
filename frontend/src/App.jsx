@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users } from 'lucide-react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X } from 'lucide-react';
 
 const API_URL = '';
+
+// Imagen placeholder SVG en Base64
+const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23e5e7eb'/%3E%3Cpath d='M100 85c-13.8 0-25 11.2-25 25s11.2 25 25 25 25-11.2 25-25-11.2-25-25-25zm0 40c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15z' fill='%239ca3af'/%3E%3Cpath d='M140 150c0-22.1-17.9-40-40-40s-40 17.9-40 40v10h80v-10z' fill='%239ca3af'/%3E%3C/svg%3E";
 
 const validaciones = {
   email: (value) => {
@@ -10,22 +13,47 @@ const validaciones = {
   },
   telefono: (value) => {
     const regex = /^[0-9]{10}$/;
-    return regex.test(value) ? null : 'Teléfono debe tener 10 dígitos';
+    return regex.test(value) ? null : 'Celular debe tener exactamente 10 dígitos';
   },
   documento: (value) => {
-    const regex = /^[0-9]{5,15}$/;
-    return regex.test(value) ? null : 'Documento debe tener entre 5 y 15 dígitos';
+    const regex = /^[0-9]{1,10}$/;
+    if (!regex.test(value)) return 'Documento debe ser numérico y máximo 10 dígitos';
+    return null;
   },
-  nombre: (value) => {
-    return value && value.trim().length >= 2 ? null : 'Mínimo 2 caracteres';
+  primerNombre: (value) => {
+    if (!value || value.trim().length === 0) return 'Primer nombre requerido';
+    if (/\d/.test(value)) return 'El nombre no puede contener números';
+    if (value.length > 30) return 'Máximo 30 caracteres';
+    return null;
+  },
+  segundoNombre: (value) => {
+    if (!value || value.trim().length === 0) return null;
+    if (/\d/.test(value)) return 'El nombre no puede contener números';
+    if (value.length > 30) return 'Máximo 30 caracteres';
+    return null;
+  },
+  apellidos: (value) => {
+    if (!value || value.trim().length === 0) return 'Apellidos requeridos';
+    if (/\d/.test(value)) return 'Los apellidos no pueden contener números';
+    if (value.length > 60) return 'Máximo 60 caracteres';
+    return null;
   },
   fecha: (value) => {
-    if (!value) return 'Fecha requerida';
+    if (!value) return 'Fecha de nacimiento requerida';
     const fecha = new Date(value);
     const hoy = new Date();
     if (fecha > hoy) return 'La fecha no puede ser futura';
     const edad = hoy.getFullYear() - fecha.getFullYear();
     if (edad > 120) return 'Fecha inválida';
+    if (edad < 0) return 'Fecha inválida';
+    return null;
+  },
+  foto: (file) => {
+    if (!file) return 'Foto requerida';
+    const maxSize = 2 * 1024 * 1024;
+    if (file.size > maxSize) return 'La foto no debe superar los 2MB';
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!validTypes.includes(file.type)) return 'Formato inválido. Use JPG, PNG o GIF';
     return null;
   }
 };
@@ -54,7 +82,7 @@ const Card = ({ title, children, className = '' }) => (
   </div>
 );
 
-const Input = ({ label, type = 'text', value, onChange, error, required = false, placeholder = '', icon: Icon, ...props }) => (
+const Input = ({ label, type = 'text', value, onChange, error, required = false, placeholder = '', icon: Icon, maxLength, ...props }) => (
   <div className="group">
     <label className="block text-gray-700 mb-2 font-semibold text-sm">
       {label} {required && <span className="text-red-500">*</span>}
@@ -70,11 +98,17 @@ const Input = ({ label, type = 'text', value, onChange, error, required = false,
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        maxLength={maxLength}
         className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
           error ? 'border-red-500 focus:ring-red-500 bg-red-50' : 'border-gray-200 focus:ring-blue-600 focus:border-blue-600 bg-gray-50 hover:bg-white'
         }`}
         {...props}
       />
+      {maxLength && (
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+          {value?.length || 0}/{maxLength}
+        </div>
+      )}
     </div>
     {error && <p className="text-red-500 text-sm mt-2 flex items-center gap-1 animate-slideDown"><AlertCircle size={14} /> {error}</p>}
   </div>
@@ -111,6 +145,103 @@ const Select = ({ label, value, onChange, options, error, required = false, icon
   </div>
 );
 
+const ImageUpload = ({ label, value, onChange, error, required = false }) => {
+  const [preview, setPreview] = useState(value || null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileChange = (file) => {
+    if (!file) return;
+
+    const validationError = validaciones.foto(file);
+    if (validationError) {
+      onChange(null, validationError);
+      setPreview(null);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setPreview(base64String);
+      onChange(base64String, null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    handleFileChange(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleClear = () => {
+    setPreview(null);
+    onChange(null, null);
+  };
+
+  return (
+    <div className="group">
+      <label className="block text-gray-700 mb-2 font-semibold text-sm">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      
+      {!preview ? (
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer ${
+            isDragging 
+              ? 'border-blue-600 bg-blue-50' 
+              : error 
+                ? 'border-red-500 bg-red-50' 
+                : 'border-gray-300 bg-gray-50 hover:border-blue-600 hover:bg-blue-50'
+          }`}
+        >
+          <input
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/gif"
+            onChange={(e) => handleFileChange(e.target.files[0])}
+            className="hidden"
+            id="file-upload"
+          />
+          <label htmlFor="file-upload" className="cursor-pointer">
+            <Upload className={`mx-auto mb-4 ${error ? 'text-red-500' : 'text-gray-400'}`} size={48} />
+            <p className="text-gray-600 font-semibold mb-2">
+              Haga clic para seleccionar o arrastre una imagen
+            </p>
+            <p className="text-sm text-gray-500">JPG, PNG o GIF - Máximo 2MB</p>
+          </label>
+        </div>
+      ) : (
+        <div className="relative border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
+          <img src={preview} alt="Vista previa" className="w-full h-64 object-contain rounded-lg mb-4" />
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute top-6 right-6 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+          >
+            <X size={20} />
+          </button>
+          <p className="text-sm text-gray-600 text-center">Imagen cargada correctamente</p>
+        </div>
+      )}
+      
+      {error && <p className="text-red-500 text-sm mt-2 flex items-center gap-1 animate-slideDown"><AlertCircle size={14} /> {error}</p>}
+    </div>
+  );
+};
+
 const Alert = ({ message, type }) => {
   if (!message) return null;
   const isError = type === 'error';
@@ -124,7 +255,7 @@ const Alert = ({ message, type }) => {
 
 const StatCard = ({ title, value, icon: Icon, color, delay = 0 }) => (
   <div 
-    className={`bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 animate-slideUp`}
+    className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 animate-slideUp"
     style={{ 
       borderColor: color,
       animationDelay: `${delay}ms`
@@ -135,7 +266,7 @@ const StatCard = ({ title, value, icon: Icon, color, delay = 0 }) => (
         <p className="text-gray-600 text-sm font-medium mb-2">{title}</p>
         <p className="text-3xl font-bold text-gray-800">{value}</p>
       </div>
-      <div className={`p-4 rounded-xl`} style={{ backgroundColor: color + '20' }}>
+      <div className="p-4 rounded-xl" style={{ backgroundColor: color + '20' }}>
         <Icon size={32} style={{ color }} />
       </div>
     </div>
@@ -162,7 +293,8 @@ export default function App() {
     correo: '',
     celular: '',
     nro_doc: '',
-    tipo_doc: ''
+    tipo_doc: '',
+    foto: ''
   });
   const [erroresCrear, setErroresCrear] = useState({});
 
@@ -237,7 +369,7 @@ export default function App() {
         showMessage(data.detail || 'Credenciales inválidas', 'error');
       }
     } catch (error) {
-      showMessage('Error de conexión. Verifique que el backend esté corriendo en puerto 8000', 'error');
+      showMessage('Error de conexión', 'error');
       console.error('Error:', error);
     }
     setLoading(false);
@@ -256,7 +388,8 @@ export default function App() {
       correo: '',
       celular: '',
       nro_doc: '',
-      tipo_doc: ''
+      tipo_doc: '',
+      foto: ''
     });
     setPersonaConsultada(null);
     setNroDocConsulta('');
@@ -265,14 +398,17 @@ export default function App() {
   const validarFormCrear = () => {
     const errores = {};
 
-    if (!formCrear.primer_nombre.trim()) errores.primer_nombre = 'Primer nombre requerido';
-    else if (validaciones.nombre(formCrear.primer_nombre)) errores.primer_nombre = validaciones.nombre(formCrear.primer_nombre);
+    const errorPrimerNombre = validaciones.primerNombre(formCrear.primer_nombre);
+    if (errorPrimerNombre) errores.primer_nombre = errorPrimerNombre;
 
-    if (!formCrear.apellidos.trim()) errores.apellidos = 'Apellidos requeridos';
-    else if (validaciones.nombre(formCrear.apellidos)) errores.apellidos = validaciones.nombre(formCrear.apellidos);
+    const errorSegundoNombre = validaciones.segundoNombre(formCrear.segundo_nombre);
+    if (errorSegundoNombre) errores.segundo_nombre = errorSegundoNombre;
 
-    if (!formCrear.fecha_nacimiento) errores.fecha_nacimiento = 'Fecha de nacimiento requerida';
-    else if (validaciones.fecha(formCrear.fecha_nacimiento)) errores.fecha_nacimiento = validaciones.fecha(formCrear.fecha_nacimiento);
+    const errorApellidos = validaciones.apellidos(formCrear.apellidos);
+    if (errorApellidos) errores.apellidos = errorApellidos;
+
+    const errorFecha = validaciones.fecha(formCrear.fecha_nacimiento);
+    if (errorFecha) errores.fecha_nacimiento = errorFecha;
 
     if (!formCrear.genero) errores.genero = 'Género requerido';
 
@@ -286,6 +422,8 @@ export default function App() {
     else if (validaciones.documento(formCrear.nro_doc)) errores.nro_doc = validaciones.documento(formCrear.nro_doc);
 
     if (!formCrear.tipo_doc) errores.tipo_doc = 'Tipo de documento requerido';
+
+    if (!formCrear.foto) errores.foto = 'Foto requerida';
 
     setErroresCrear(errores);
     return Object.keys(errores).length === 0;
@@ -321,7 +459,8 @@ export default function App() {
           correo: '',
           celular: '',
           nro_doc: '',
-          tipo_doc: ''
+          tipo_doc: '',
+          foto: ''
         });
         setErroresCrear({});
       } else {
@@ -371,16 +510,19 @@ export default function App() {
   const validarFormModificar = () => {
     const errores = {};
 
-    if (formModificar.primer_nombre !== undefined && formModificar.primer_nombre.trim() === '') {
-      errores.primer_nombre = 'No puede estar vacío';
-    } else if (formModificar.primer_nombre && validaciones.nombre(formModificar.primer_nombre)) {
-      errores.primer_nombre = validaciones.nombre(formModificar.primer_nombre);
+    if (formModificar.primer_nombre !== undefined) {
+      const error = validaciones.primerNombre(formModificar.primer_nombre);
+      if (error) errores.primer_nombre = error;
     }
 
-    if (formModificar.apellidos !== undefined && formModificar.apellidos.trim() === '') {
-      errores.apellidos = 'No puede estar vacío';
-    } else if (formModificar.apellidos && validaciones.nombre(formModificar.apellidos)) {
-      errores.apellidos = validaciones.nombre(formModificar.apellidos);
+    if (formModificar.segundo_nombre !== undefined) {
+      const error = validaciones.segundoNombre(formModificar.segundo_nombre);
+      if (error) errores.segundo_nombre = error;
+    }
+
+    if (formModificar.apellidos !== undefined) {
+      const error = validaciones.apellidos(formModificar.apellidos);
+      if (error) errores.apellidos = error;
     }
 
     if (formModificar.correo && validaciones.email(formModificar.correo)) {
@@ -491,7 +633,6 @@ export default function App() {
   if (!token) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
@@ -557,7 +698,6 @@ export default function App() {
   if (currentView === 'menu') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white shadow-2xl">
           <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
             <div className="flex items-center gap-4">
@@ -579,7 +719,6 @@ export default function App() {
         </div>
 
         <div className="max-w-7xl mx-auto p-8">
-          {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <StatCard title="Total de Operaciones" value={stats.total} icon={FileText} color="#3B82F6" delay={0} />
             <StatCard title="Personas Creadas" value={stats.created} icon={Plus} color="#10B981" delay={100} />
@@ -589,7 +728,6 @@ export default function App() {
 
           <h2 className="text-3xl font-bold mb-6 text-gray-800">Panel de Control</h2>
 
-          {/* Menu Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <button 
               onClick={() => setCurrentView('crear')} 
@@ -681,13 +819,16 @@ export default function App() {
                 required
                 icon={User}
                 placeholder="Juan"
+                maxLength={30}
               />
               <Input
                 label="Segundo Nombre"
                 value={formCrear.segundo_nombre}
                 onChange={(e) => setFormCrear({...formCrear, segundo_nombre: e.target.value})}
+                error={erroresCrear.segundo_nombre}
                 icon={User}
                 placeholder="Carlos (opcional)"
+                maxLength={30}
               />
               <Input
                 label="Apellidos"
@@ -697,6 +838,7 @@ export default function App() {
                 required
                 icon={User}
                 placeholder="Pérez García"
+                maxLength={60}
               />
               <Input
                 label="Fecha de Nacimiento"
@@ -712,9 +854,10 @@ export default function App() {
                 value={formCrear.genero}
                 onChange={(e) => setFormCrear({...formCrear, genero: e.target.value})}
                 options={[
-                  { value: 'M', label: 'Masculino' },
-                  { value: 'F', label: 'Femenino' },
-                  { value: 'O', label: 'Otro' }
+                  { value: 'Masculino', label: 'Masculino' },
+                  { value: 'Femenino', label: 'Femenino' },
+                  { value: 'No binario', label: 'No binario' },
+                  { value: 'Prefiero no reportar', label: 'Prefiero no reportar' }
                 ]}
                 error={erroresCrear.genero}
                 required
@@ -725,10 +868,8 @@ export default function App() {
                 value={formCrear.tipo_doc}
                 onChange={(e) => setFormCrear({...formCrear, tipo_doc: e.target.value})}
                 options={[
-                  { value: 'CC', label: 'Cédula de Ciudadanía' },
-                  { value: 'TI', label: 'Tarjeta de Identidad' },
-                  { value: 'CE', label: 'Cédula de Extranjería' },
-                  { value: 'PA', label: 'Pasaporte' }
+                  { value: 'Tarjeta de identidad', label: 'Tarjeta de identidad' },
+                  { value: 'Cédula', label: 'Cédula' }
                 ]}
                 error={erroresCrear.tipo_doc}
                 required
@@ -742,6 +883,7 @@ export default function App() {
                 required
                 placeholder="1234567890"
                 icon={CreditCard}
+                maxLength={10}
               />
               <Input
                 label="Correo Electrónico"
@@ -761,8 +903,29 @@ export default function App() {
                 required
                 placeholder="3001234567"
                 icon={Phone}
+                maxLength={10}
               />
             </div>
+            
+            <div className="mb-8">
+              <ImageUpload
+                label="Foto"
+                value={formCrear.foto}
+                onChange={(base64, error) => {
+                  setFormCrear({...formCrear, foto: base64});
+                  if (error) {
+                    setErroresCrear({...erroresCrear, foto: error});
+                  } else {
+                    const newErrors = {...erroresCrear};
+                    delete newErrors.foto;
+                    setErroresCrear(newErrors);
+                  }
+                }}
+                error={erroresCrear.foto}
+                required
+              />
+            </div>
+
             <Button onClick={handleCrearPersona} disabled={loading} className="w-full text-lg py-4">
               {loading ? (
                 <>
@@ -820,10 +983,20 @@ export default function App() {
           {personaConsultada && (
             <Card title="Información de la Persona" className="border-l-4 border-blue-600">
               <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}
-                </h3>
-                <p className="text-blue-700 font-semibold">{personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+                <div className="flex items-start gap-6">
+                  <img 
+                    src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
+                    alt="Foto de perfil" 
+                    className="w-32 h-32 rounded-xl object-cover border-4 border-white shadow-lg"
+                    onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
+                  />
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                      {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}
+                    </h3>
+                    <p className="text-blue-700 font-semibold">{personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+                  </div>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
@@ -852,9 +1025,7 @@ export default function App() {
                     <User className="text-orange-600" size={20} />
                     <p className="text-sm text-gray-600 font-semibold">Género</p>
                   </div>
-                  <p className="font-semibold text-gray-800 ml-8">
-                    {personaConsultada.genero === 'M' ? 'Masculino' : personaConsultada.genero === 'F' ? 'Femenino' : 'Otro'}
-                  </p>
+                  <p className="font-semibold text-gray-800 ml-8">{personaConsultada.genero}</p>
                 </div>
               </div>
             </Card>
@@ -908,12 +1079,22 @@ export default function App() {
             <>
               <Card title="Datos Actuales" className="border-l-4 border-orange-600">
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 rounded-xl">
-                  <p className="font-bold text-2xl mb-3 text-gray-800">
-                    {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}
-                  </p>
-                  <div className="flex items-center gap-2 text-orange-800">
-                    <CreditCard size={20} />
-                    <p className="font-semibold">Documento: {personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+                  <div className="flex items-start gap-6">
+                    <img 
+                      src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
+                      alt="Foto de perfil" 
+                      className="w-24 h-24 rounded-xl object-cover border-4 border-white shadow-lg"
+                      onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
+                    />
+                    <div className="flex-1">
+                      <p className="font-bold text-2xl mb-3 text-gray-800">
+                        {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}
+                      </p>
+                      <div className="flex items-center gap-2 text-orange-800">
+                        <CreditCard size={20} />
+                        <p className="font-semibold">Documento: {personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -930,13 +1111,16 @@ export default function App() {
                     error={erroresModificar.primer_nombre}
                     placeholder={personaConsultada.primer_nombre}
                     icon={User}
+                    maxLength={30}
                   />
                   <Input
                     label="Segundo Nombre"
                     value={formModificar.segundo_nombre || ''}
                     onChange={(e) => setFormModificar({...formModificar, segundo_nombre: e.target.value})}
+                    error={erroresModificar.segundo_nombre}
                     placeholder={personaConsultada.segundo_nombre || 'Sin segundo nombre'}
                     icon={User}
+                    maxLength={30}
                   />
                   <Input
                     label="Apellidos"
@@ -945,6 +1129,7 @@ export default function App() {
                     error={erroresModificar.apellidos}
                     placeholder={personaConsultada.apellidos}
                     icon={User}
+                    maxLength={60}
                   />
                   <Input
                     label="Correo Electrónico"
@@ -962,15 +1147,17 @@ export default function App() {
                     error={erroresModificar.celular}
                     placeholder={personaConsultada.celular}
                     icon={Phone}
+                    maxLength={10}
                   />
                   <Select
                     label="Género"
                     value={formModificar.genero || ''}
                     onChange={(e) => setFormModificar({...formModificar, genero: e.target.value})}
                     options={[
-                      { value: 'M', label: 'Masculino' },
-                      { value: 'F', label: 'Femenino' },
-                      { value: 'O', label: 'Otro' }
+                      { value: 'Masculino', label: 'Masculino' },
+                      { value: 'Femenino', label: 'Femenino' },
+                      { value: 'No binario', label: 'No binario' },
+                      { value: 'Prefiero no reportar', label: 'Prefiero no reportar' }
                     ]}
                     icon={User}
                   />
@@ -1035,7 +1222,7 @@ export default function App() {
                 onChange={(e) => setNroDocConsulta(e.target.value)}
                 placeholder="1234567890"
                 className="flex-1"
-                icon={IdCard}
+                icon={CreditCard}
                 onKeyPress={(e) => e.key === 'Enter' && handleConsultarPersona()}
               />
               <div className="flex items-end">
@@ -1059,6 +1246,14 @@ export default function App() {
                   </div>
                 </div>
                 <div className="space-y-3 bg-white p-4 rounded-lg">
+                  <div className="flex justify-center mb-4">
+                    <img 
+                      src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
+                      alt="Foto de perfil" 
+                      className="w-24 h-24 rounded-xl object-cover border-4 border-gray-200 shadow-lg"
+                      onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
+                    />
+                  </div>
                   <div className="flex items-center gap-2">
                     <User className="text-gray-600" size={20} />
                     <p><strong>Nombre:</strong> {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}</p>

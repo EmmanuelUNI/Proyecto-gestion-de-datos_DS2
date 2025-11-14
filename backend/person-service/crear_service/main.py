@@ -26,6 +26,7 @@ class CrearPersonaRequest(BaseModel):
     celular: str
     nro_doc: str
     tipo_doc: str
+    foto: str
 
 @app.post("/crear")
 async def crear_persona(request: CrearPersonaRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
