@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock } from 'lucide-react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, Settings, BarChart3, Shield } from 'lucide-react';
 
 const API_URL = '';
 
 // Imagen placeholder SVG en Base64
-const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23e5e7eb'/%3E%3Cpath d='M100 85c-13.8 0-25 11.2-25 25s11.2 25 25 25 25-11.2 25-25-11.2-25-25-25zm0 40c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15z' fill='%239ca3af'/%3E%3Cpath d='M140 150c0-22.1-17.9-40-40-40s-40 17.9-40 40v10h80v-10z' fill='%239ca3af'/%3E%3C/svg%3E";
+const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f8fafc'/%3E%3Cpath d='M100 85c-13.8 0-25 11.2-25 25s11.2 25 25 25 25-11.2 25-25-11.2-25-25-25zm0 40c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15z' fill='%23cbd5e1'/%3E%3Cpath d='M140 150c0-22.1-17.9-40-40-40s-40 17.9-40 40v10h80v-10z' fill='%23cbd5e1'/%3E%3C/svg%3E";
 
 const validaciones = {
   email: (value) => {
@@ -72,39 +72,60 @@ const validaciones = {
   }
 };
 
-const Button = ({ onClick, children, variant = 'primary', disabled = false, className = '' }) => {
-  const baseStyle = 'px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl';
-  const variants = {
-    primary: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed',
-    danger: 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed',
-    secondary: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed',
-    success: 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed'
+const Button = ({ onClick, children, variant = 'primary', disabled = false, className = '', size = 'md', ...props }) => {
+  const baseStyle = 'rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95 shadow-lg hover:shadow-xl border border-transparent';
+  
+  const sizes = {
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-6 py-3 text-base',
+    lg: 'px-8 py-4 text-lg'
   };
+  
+  const variants = {
+    primary: 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white hover:from-blue-700 hover:to-indigo-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-blue-500/20',
+    danger: 'bg-gradient-to-r from-rose-600 to-red-700 text-white hover:from-rose-700 hover:to-red-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-rose-500/20',
+    secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-slate-500/20',
+    success: 'bg-gradient-to-r from-emerald-600 to-green-700 text-white hover:from-emerald-700 hover:to-green-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-emerald-500/20',
+    warning: 'bg-gradient-to-r from-amber-600 to-orange-700 text-white hover:from-amber-700 hover:to-orange-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-amber-500/20',
+    outline: 'bg-white text-slate-700 border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200'
+  };
+  
   return (
-    <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
+    <button 
+      onClick={onClick} 
+      disabled={disabled} 
+      className={`${baseStyle} ${sizes[size]} ${variants[variant]} ${className}`}
+      {...props}
+    >
       {children}
     </button>
   );
 };
 
-const Card = ({ title, children, className = '' }) => (
-  <div className={`bg-white rounded-2xl shadow-xl p-8 mb-6 transform transition-all duration-300 hover:shadow-2xl border border-gray-100 animate-fadeIn ${className}`}>
-    <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
-      <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-blue-800 rounded-full"></div>
-      {title}
-    </h2>
+const Card = ({ title, children, className = '', variant = 'default', icon: Icon }) => (
+  <div className={`bg-white rounded-2xl shadow-lg p-8 mb-6 transform transition-all duration-300 hover:shadow-xl border border-slate-100 animate-fadeIn ${className}`}>
+    {title && (
+      <div className="flex items-center gap-3 mb-6">
+        {Icon && (
+          <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md">
+            <Icon size={20} />
+          </div>
+        )}
+        <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
+      </div>
+    )}
     {children}
   </div>
 );
 
 const Input = ({ label, type = 'text', value, onChange, error, required = false, placeholder = '', icon: Icon, maxLength, ...props }) => (
   <div className="group">
-    <label className="block text-gray-700 mb-2 font-semibold text-sm">
-      {label} {required && <span className="text-red-500">*</span>}
+    <label className="block text-slate-700 mb-2 font-semibold text-sm">
+      {label} {required && <span className="text-rose-500">*</span>}
     </label>
     <div className="relative">
       {Icon && (
-        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors duration-300">
           <Icon size={20} />
         </div>
       )}
@@ -114,49 +135,63 @@ const Input = ({ label, type = 'text', value, onChange, error, required = false,
         onChange={onChange}
         placeholder={placeholder}
         maxLength={maxLength}
-        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
-          error ? 'border-red-500 focus:ring-red-500 bg-red-50' : 'border-gray-200 focus:ring-blue-600 focus:border-blue-600 bg-gray-50 hover:bg-white'
+        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+          error 
+            ? 'border-rose-500 focus:ring-rose-500 bg-rose-50' 
+            : 'border-slate-300 focus:ring-blue-600 focus:border-blue-600 bg-slate-50 hover:bg-white'
         }`}
         {...props}
       />
       {maxLength && (
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-slate-400">
           {value?.length || 0}/{maxLength}
         </div>
       )}
     </div>
-    {error && <p className="text-red-500 text-sm mt-2 flex items-center gap-1 animate-slideDown"><AlertCircle size={14} /> {error}</p>}
+    {error && (
+      <p className="text-rose-500 text-sm mt-2 flex items-center gap-1 animate-slideDown">
+        <AlertCircle size={14} /> 
+        {error}
+      </p>
+    )}
   </div>
 );
 
 const Select = ({ label, value, onChange, options, error, required = false, icon: Icon }) => (
   <div className="group">
-    <label className="block text-gray-700 mb-2 font-semibold text-sm">
-      {label} {required && <span className="text-red-500">*</span>}
+    <label className="block text-slate-700 mb-2 font-semibold text-sm">
+      {label} {required && <span className="text-rose-500">*</span>}
     </label>
     <div className="relative">
       {Icon && (
-        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10">
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors duration-300 z-10">
           <Icon size={20} />
         </div>
       )}
       <select
         value={value}
         onChange={onChange}
-        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 appearance-none bg-gray-50 hover:bg-white ${
-          error ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-blue-600 focus:border-blue-600'
+        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 appearance-none bg-slate-50 hover:bg-white ${
+          error 
+            ? 'border-rose-500 focus:ring-rose-500' 
+            : 'border-slate-300 focus:ring-blue-600 focus:border-blue-600'
         }`}
       >
         <option value="">Seleccione...</option>
         {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
       </select>
-      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-slate-400">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </div>
     </div>
-    {error && <p className="text-red-500 text-sm mt-2 flex items-center gap-1 animate-slideDown"><AlertCircle size={14} /> {error}</p>}
+    {error && (
+      <p className="text-rose-500 text-sm mt-2 flex items-center gap-1 animate-slideDown">
+        <AlertCircle size={14} /> 
+        {error}
+      </p>
+    )}
   </div>
 );
 
@@ -206,8 +241,8 @@ const ImageUpload = ({ label, value, onChange, error, required = false }) => {
 
   return (
     <div className="group">
-      <label className="block text-gray-700 mb-2 font-semibold text-sm">
-        {label} {required && <span className="text-red-500">*</span>}
+      <label className="block text-slate-700 mb-2 font-semibold text-sm">
+        {label} {required && <span className="text-rose-500">*</span>}
       </label>
       
       {!preview ? (
@@ -217,10 +252,10 @@ const ImageUpload = ({ label, value, onChange, error, required = false }) => {
           onDragLeave={handleDragLeave}
           className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer ${
             isDragging 
-              ? 'border-blue-600 bg-blue-50' 
+              ? 'border-blue-500 bg-blue-50 shadow-inner' 
               : error 
-                ? 'border-red-500 bg-red-50' 
-                : 'border-gray-300 bg-gray-50 hover:border-blue-600 hover:bg-blue-50'
+                ? 'border-rose-500 bg-rose-50' 
+                : 'border-slate-300 bg-slate-50 hover:border-blue-500 hover:bg-blue-50'
           }`}
         >
           <input
@@ -231,28 +266,33 @@ const ImageUpload = ({ label, value, onChange, error, required = false }) => {
             id="file-upload"
           />
           <label htmlFor="file-upload" className="cursor-pointer">
-            <Upload className={`mx-auto mb-4 ${error ? 'text-red-500' : 'text-gray-400'}`} size={48} />
-            <p className="text-gray-600 font-semibold mb-2">
+            <Upload className={`mx-auto mb-4 ${error ? 'text-rose-500' : 'text-slate-400'} transition-colors duration-300`} size={48} />
+            <p className="text-slate-600 font-semibold mb-2">
               Haga clic para seleccionar o arrastre una imagen
             </p>
-            <p className="text-sm text-gray-500">JPG, PNG o GIF - Máximo 2MB</p>
+            <p className="text-sm text-slate-500">JPG, PNG o GIF - Máximo 2MB</p>
           </label>
         </div>
       ) : (
-        <div className="relative border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
+        <div className="relative border-2 border-slate-200 rounded-xl p-4 bg-slate-50 transition-all duration-300">
           <img src={preview} alt="Vista previa" className="w-full h-64 object-contain rounded-lg mb-4" />
           <button
             type="button"
             onClick={handleClear}
-            className="absolute top-6 right-6 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+            className="absolute top-4 right-4 bg-rose-500 text-white p-2 rounded-full hover:bg-rose-600 transition-colors shadow-lg transform hover:scale-110"
           >
             <X size={20} />
           </button>
-          <p className="text-sm text-gray-600 text-center">Imagen cargada correctamente</p>
+          <p className="text-sm text-slate-600 text-center">Imagen cargada correctamente</p>
         </div>
       )}
       
-      {error && <p className="text-red-500 text-sm mt-2 flex items-center gap-1 animate-slideDown"><AlertCircle size={14} /> {error}</p>}
+      {error && (
+        <p className="text-rose-500 text-sm mt-2 flex items-center gap-1 animate-slideDown">
+          <AlertCircle size={14} /> 
+          {error}
+        </p>
+      )}
     </div>
   );
 };
@@ -261,7 +301,11 @@ const Alert = ({ message, type }) => {
   if (!message) return null;
   const isError = type === 'error';
   return (
-    <div className={`p-4 rounded-xl flex items-center gap-3 animate-slideDown shadow-lg ${isError ? 'bg-red-50 text-red-700 border-2 border-red-200' : 'bg-green-50 text-green-700 border-2 border-green-200'}`}>
+    <div className={`p-4 rounded-xl flex items-center gap-3 animate-slideDown shadow-lg border-l-4 ${
+      isError 
+        ? 'bg-rose-50 text-rose-700 border-rose-500' 
+        : 'bg-emerald-50 text-emerald-700 border-emerald-500'
+    }`}>
       {isError ? <AlertCircle size={24} /> : <CheckCircle size={24} />}
       <span className="font-semibold">{message}</span>
     </div>
@@ -270,7 +314,7 @@ const Alert = ({ message, type }) => {
 
 const StatCard = ({ title, value, icon: Icon, color, delay = 0 }) => (
   <div 
-    className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 animate-slideUp"
+    className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 animate-slideUp group cursor-pointer"
     style={{ 
       borderColor: color,
       animationDelay: `${delay}ms`
@@ -278,11 +322,50 @@ const StatCard = ({ title, value, icon: Icon, color, delay = 0 }) => (
   >
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-gray-600 text-sm font-medium mb-2">{title}</p>
-        <p className="text-3xl font-bold text-gray-800">{value}</p>
+        <p className="text-slate-600 text-sm font-medium mb-2">{title}</p>
+        <p className="text-3xl font-bold text-slate-800">{value}</p>
       </div>
-      <div className="p-4 rounded-xl" style={{ backgroundColor: color + '20' }}>
+      <div className="p-4 rounded-xl transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: color + '20' }}>
         <Icon size={32} style={{ color }} />
+      </div>
+    </div>
+  </div>
+);
+
+const Breadcrumb = ({ items }) => (
+  <nav className="flex items-center space-x-2 text-sm text-slate-600 mb-6">
+    {items.map((item, index) => (
+      <React.Fragment key={index}>
+        {index > 0 && <ChevronRight size={16} className="text-slate-400" />}
+        <span className={`${index === items.length - 1 ? 'text-slate-800 font-semibold' : 'text-slate-600 hover:text-blue-600 cursor-pointer'}`}>
+          {item}
+        </span>
+      </React.Fragment>
+    ))}
+  </nav>
+);
+
+const ViewHeader = ({ title, subtitle, gradient, breadcrumbItems, icon: Icon, onBack }) => (
+  <div className={`bg-gradient-to-r ${gradient} text-white p-6 shadow-xl`}>
+    <div className="max-w-7xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <Breadcrumb items={breadcrumbItems} />
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
+              <Icon size={32} />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">{title}</h1>
+              <p className="text-white/80 mt-2">{subtitle}</p>
+            </div>
+          </div>
+        </div>
+        {onBack && (
+          <Button onClick={onBack} variant="outline" size="md">
+            ← Volver al Menú
+          </Button>
+        )}
       </div>
     </div>
   </div>
@@ -747,20 +830,20 @@ export default function App() {
   if (!token) {
     if (currentView === 'signup' && !esperandoCodigo) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-violet-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
           </div>
 
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
             <div className="text-center mb-8">
-              <div className="bg-gradient-to-r from-green-600 to-green-800 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
                 <UserPlus size={40} className="text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">Crear Cuenta</h1>
-              <p className="text-gray-600 font-medium">Regístrese en el sistema</p>
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">Crear Cuenta</h1>
+              <p className="text-slate-600 font-medium">Regístrese en el sistema</p>
             </div>
 
             <div className="space-y-5">
@@ -795,7 +878,7 @@ export default function App() {
                 placeholder="Mínimo 6 caracteres"
                 icon={Lock}
               />
-              <Button onClick={handleSignup} disabled={loading} className="w-full text-lg py-4" variant="success">
+              <Button onClick={handleSignup} disabled={loading} className="w-full text-lg py-4" variant="primary">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -808,7 +891,7 @@ export default function App() {
                   </>
                 )}
               </Button>
-              <Button onClick={() => setCurrentView('login')} variant="secondary" className="w-full text-lg py-4">
+              <Button onClick={() => setCurrentView('login')} variant="outline" className="w-full text-lg py-4">
                 ← Volver al Login
               </Button>
             </div>
@@ -821,24 +904,24 @@ export default function App() {
 
     if (esperandoCodigo) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
           </div>
 
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
             <div className="text-center mb-8">
-              <div className="bg-gradient-to-r from-purple-600 to-purple-800 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="bg-gradient-to-r from-purple-600 to-indigo-700 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Mail size={40} className="text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">Verificar Email</h1>
-              <p className="text-gray-600 font-medium">Se envió un código a:</p>
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">Verificar Email</h1>
+              <p className="text-slate-600 font-medium">Se envió un código a:</p>
               <p className="text-purple-600 font-bold mt-1">{emailRegistrado}</p>
             </div>
 
             <div className="space-y-5">
-              <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mb-4">
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
                 <p className="text-sm text-purple-800 text-center">
                   💡 Revise su bandeja de entrada o spam
                 </p>
@@ -854,7 +937,7 @@ export default function App() {
                 maxLength={6}
                 onKeyPress={(e) => e.key === 'Enter' && handleVerifyEmail()}
               />
-              <Button onClick={handleVerifyEmail} disabled={loading} className="w-full text-lg py-4" variant="success">
+              <Button onClick={handleVerifyEmail} disabled={loading} className="w-full text-lg py-4" variant="primary">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -873,7 +956,7 @@ export default function App() {
                   setCodigoVerificacion('');
                   setCurrentView('login');
                 }} 
-                variant="secondary" 
+                variant="outline" 
                 className="w-full text-lg py-4"
               >
                 Cancelar
@@ -887,20 +970,20 @@ export default function App() {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-violet-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
         </div>
 
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
           <div className="text-center mb-8">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
-              <Users size={40} className="text-white" />
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
+              <Database size={40} className="text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Sistema de Gestión</h1>
-            <p className="text-gray-600 font-medium">Plataforma de Datos Personales</p>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Sistema de Gestión</h1>
+            <p className="text-slate-600 font-medium">Plataforma de Datos Personales</p>
           </div>
 
           <div className="space-y-5">
@@ -937,7 +1020,7 @@ export default function App() {
                 </>
               )}
             </Button>
-            <Button onClick={() => setCurrentView('signup')} variant="success" className="w-full text-lg py-4">
+            <Button onClick={() => setCurrentView('signup')} variant="outline" className="w-full text-lg py-4">
               <UserPlus size={20} />
               Crear Cuenta Nueva
             </Button>
@@ -945,9 +1028,9 @@ export default function App() {
 
           {message && <div className="mt-6"><Alert message={message} type={messageType} /></div>}
 
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-            <p className="text-sm text-gray-500">Sistema de Gestión de Datos</p>
-            <p className="text-xs text-gray-400 mt-1">Seguro y Confiable</p>
+          <div className="mt-8 pt-6 border-t border-slate-200 text-center">
+            <p className="text-sm text-slate-500">Sistema de Gestión de Datos</p>
+            <p className="text-xs text-slate-400 mt-1">Seguro y Confiable</p>
           </div>
         </div>
       </div>
@@ -956,12 +1039,12 @@ export default function App() {
 
   if (currentView === 'menu') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white shadow-2xl">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white shadow-2xl">
           <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="bg-white/10 backdrop-blur-sm p-3 rounded-xl">
-                <Users size={32} />
+                <Database size={32} />
               </div>
               <div>
                 <h1 className="text-3xl font-bold">Sistema de Gestión de Personas</h1>
@@ -979,74 +1062,85 @@ export default function App() {
 
         <div className="max-w-7xl mx-auto p-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <StatCard title="Total de Operaciones" value={stats.total} icon={FileText} color="#3B82F6" delay={0} />
+            <StatCard title="Total de Operaciones" value={stats.total} icon={BarChart3} color="#3B82F6" delay={0} />
             <StatCard title="Personas Creadas" value={stats.created} icon={Plus} color="#10B981" delay={100} />
             <StatCard title="Modificaciones" value={stats.modified} icon={Edit2} color="#F59E0B" delay={200} />
             <StatCard title="Consultas" value={stats.consulted} icon={Search} color="#8B5CF6" delay={300} />
           </div>
 
-          <h2 className="text-3xl font-bold mb-6 text-gray-800">Panel de Control</h2>
+          <h2 className="text-3xl font-bold mb-6 text-slate-800">Panel de Control</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <button 
+            <div 
               onClick={() => setCurrentView('crear')} 
-              className="group bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              className="group bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-emerald-500/20"
               style={{ animationDelay: '0ms' }}
             >
-              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Plus size={48} />
+              <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Plus size={32} />
               </div>
               <span className="text-xl">Crear Personas</span>
-              <p className="text-green-100 text-sm mt-2 opacity-90">Registrar nuevas personas en el sistema</p>
-            </button>
+              <p className="text-emerald-100 text-sm mt-2 opacity-90">Registrar nuevas personas en el sistema</p>
+            </div>
 
-            <button 
+            <div 
               onClick={() => setCurrentView('consultar')} 
-              className="group bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              className="group bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-blue-500/20"
               style={{ animationDelay: '100ms' }}
             >
-              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Search size={48} />
+              <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Search size={32} />
               </div>
               <span className="text-xl">Consultar Datos</span>
               <p className="text-blue-100 text-sm mt-2 opacity-90">Buscar información de personas</p>
-            </button>
+            </div>
 
-            <button 
+            <div 
               onClick={() => setCurrentView('modificar')} 
-              className="group bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              className="group bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-amber-500/20"
               style={{ animationDelay: '200ms' }}
             >
-              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Edit2 size={48} />
+              <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Edit2 size={32} />
               </div>
               <span className="text-xl">Modificar Datos</span>
-              <p className="text-orange-100 text-sm mt-2 opacity-90">Actualizar información existente</p>
-            </button>
+              <p className="text-amber-100 text-sm mt-2 opacity-90">Actualizar información existente</p>
+            </div>
 
-            <button 
+            <div 
               onClick={() => setCurrentView('eliminar')} 
-              className="group bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              className="group bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-rose-500/20"
               style={{ animationDelay: '300ms' }}
             >
-              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Trash2 size={48} />
+              <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Trash2 size={32} />
               </div>
               <span className="text-xl">Eliminar Personas</span>
-              <p className="text-red-100 text-sm mt-2 opacity-90">Remover registros del sistema</p>
-            </button>
+              <p className="text-rose-100 text-sm mt-2 opacity-90">Remover registros del sistema</p>
+            </div>
 
-            <button 
+            <div 
               onClick={() => setCurrentView('logs')} 
-              className="group bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white p-10 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp"
+              className="group bg-gradient-to-br from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-purple-500/20"
               style={{ animationDelay: '400ms' }}
             >
-              <div className="bg-white/20 backdrop-blur-sm w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <FileText size={48} />
+              <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <FileText size={32} />
               </div>
               <span className="text-xl">Consultar Logs</span>
               <p className="text-purple-100 text-sm mt-2 opacity-90">Historial de operaciones</p>
-            </button>
+            </div>
+
+            <div 
+              className="group bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-slate-500/20"
+              style={{ animationDelay: '500ms' }}
+            >
+              <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Settings size={32} />
+              </div>
+              <span className="text-xl">Consultar rag</span>
+              <p className="text-slate-100 text-sm mt-2 opacity-90">Consultas lenguage natural</p>
+            </div>
           </div>
         </div>
       </div>
@@ -1055,20 +1149,20 @@ export default function App() {
 
   if (currentView === 'crear') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-gradient-to-r from-green-600 to-emerald-700 text-white p-6 shadow-xl">
-          <Button variant="secondary" onClick={() => setCurrentView('menu')} className="mb-4">
-            ← Volver al Menú
-          </Button>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Plus size={32} />
-            Crear Nueva Persona
-          </h1>
-          <p className="text-green-100 mt-2">Complete el formulario para registrar una nueva persona</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <ViewHeader
+          title="Crear Nueva Persona"
+          subtitle="Complete el formulario para registrar una nueva persona"
+          gradient="from-emerald-600 to-green-700"
+          breadcrumbItems={['Menú Principal', 'Crear Persona']}
+          icon={Plus}
+          onBack={() => setCurrentView('menu')}
+        />
 
         <div className="max-w-5xl mx-auto p-8">
-          <Card title="Formulario de Registro">
+          {message && <Alert message={message} type={messageType} />}
+          
+          <Card title="Formulario de Registro" icon={User}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <Input
                 label="Primer Nombre"
@@ -1199,7 +1293,6 @@ export default function App() {
               )}
             </Button>
           </Card>
-          {message && <Alert message={message} type={messageType} />}
         </div>
       </div>
     );
@@ -1207,20 +1300,20 @@ export default function App() {
 
   if (currentView === 'consultar') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 shadow-xl">
-          <Button variant="secondary" onClick={() => setCurrentView('menu')} className="mb-4">
-            ← Volver al Menú
-          </Button>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Search size={32} />
-            Consultar Datos Personales
-          </h1>
-          <p className="text-blue-100 mt-2">Busque información de personas registradas</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <ViewHeader
+          title="Consultar Datos Personales"
+          subtitle="Busque información de personas registradas"
+          gradient="from-blue-600 to-indigo-700"
+          breadcrumbItems={['Menú Principal', 'Consultar Datos']}
+          icon={Search}
+          onBack={() => setCurrentView('menu')}
+        />
 
         <div className="max-w-4xl mx-auto p-8">
-          <Card title="Buscar Persona">
+          {message && <Alert message={message} type={messageType} />}
+          
+          <Card title="Buscar Persona" icon={Search}>
             <div className="flex gap-4">
               <Input
                 label="Número de Documento"
@@ -1240,8 +1333,8 @@ export default function App() {
           </Card>
 
           {personaConsultada && (
-            <Card title="Información de la Persona" className="border-l-4 border-blue-600">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl mb-6">
+            <Card title="Información de la Persona" icon={User}>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-100 p-6 rounded-xl mb-6 border border-blue-200">
                 <div className="flex items-start gap-6">
                   <img 
                     src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
@@ -1250,7 +1343,7 @@ export default function App() {
                     onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                   />
                   <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2">
                       {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}
                     </h3>
                     <p className="text-blue-700 font-semibold">{personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
@@ -1258,38 +1351,37 @@ export default function App() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-2">
                     <Mail className="text-blue-600" size={20} />
-                    <p className="text-sm text-gray-600 font-semibold">Correo Electrónico</p>
+                    <p className="text-sm text-slate-600 font-semibold">Correo Electrónico</p>
                   </div>
-                  <p className="font-semibold text-gray-800 ml-8">{personaConsultada.correo}</p>
+                  <p className="font-semibold text-slate-800 ml-8">{personaConsultada.correo}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-2">
                     <Phone className="text-green-600" size={20} />
-                    <p className="text-sm text-gray-600 font-semibold">Celular</p>
+                    <p className="text-sm text-slate-600 font-semibold">Celular</p>
                   </div>
-                  <p className="font-semibold text-gray-800 ml-8">{personaConsultada.celular}</p>
+                  <p className="font-semibold text-slate-800 ml-8">{personaConsultada.celular}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-2">
                     <Calendar className="text-purple-600" size={20} />
-                    <p className="text-sm text-gray-600 font-semibold">Fecha de Nacimiento</p>
+                    <p className="text-sm text-slate-600 font-semibold">Fecha de Nacimiento</p>
                   </div>
-                  <p className="font-semibold text-gray-800 ml-8">{personaConsultada.fecha_nacimiento}</p>
+                  <p className="font-semibold text-slate-800 ml-8">{personaConsultada.fecha_nacimiento}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-2">
                     <User className="text-orange-600" size={20} />
-                    <p className="text-sm text-gray-600 font-semibold">Género</p>
+                    <p className="text-sm text-slate-600 font-semibold">Género</p>
                   </div>
-                  <p className="font-semibold text-gray-800 ml-8">{personaConsultada.genero}</p>
+                  <p className="font-semibold text-slate-800 ml-8">{personaConsultada.genero}</p>
                 </div>
               </div>
             </Card>
           )}
-          {message && <Alert message={message} type={messageType} />}
         </div>
       </div>
     );
@@ -1297,26 +1389,26 @@ export default function App() {
 
   if (currentView === 'modificar') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-gradient-to-r from-orange-600 to-orange-800 text-white p-6 shadow-xl">
-          <Button variant="secondary" onClick={() => {
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <ViewHeader
+          title="Modificar Datos Personales"
+          subtitle="Actualice la información de personas registradas"
+          gradient="from-amber-600 to-orange-700"
+          breadcrumbItems={['Menú Principal', 'Modificar Datos']}
+          icon={Edit2}
+          onBack={() => {
             setCurrentView('menu');
             setPersonaConsultada(null);
             setFormModificar({});
             setNroDocConsulta('');
-          }} className="mb-4">
-            ← Volver al Menú
-          </Button>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Edit2 size={32} />
-            Modificar Datos Personales
-          </h1>
-          <p className="text-orange-100 mt-2">Actualice la información de personas registradas</p>
-        </div>
+          }}
+        />
 
         <div className="max-w-5xl mx-auto p-8">
+          {message && <Alert message={message} type={messageType} />}
+          
           {!personaConsultada ? (
-            <Card title="Buscar Persona">
+            <Card title="Buscar Persona" icon={Search}>
               <div className="flex gap-4">
                 <Input
                   label="Número de Documento"
@@ -1336,8 +1428,8 @@ export default function App() {
             </Card>
           ) : (
             <>
-              <Card title="Datos Actuales" className="border-l-4 border-orange-600">
-                <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 rounded-xl">
+              <Card title="Datos Actuales" icon={User}>
+                <div className="bg-gradient-to-r from-amber-50 to-orange-100 p-6 rounded-xl">
                   <div className="flex items-start gap-6">
                     <img 
                       src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
@@ -1346,10 +1438,10 @@ export default function App() {
                       onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                     />
                     <div className="flex-1">
-                      <p className="font-bold text-2xl mb-3 text-gray-800">
+                      <p className="font-bold text-2xl mb-3 text-slate-800">
                         {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}
                       </p>
-                      <div className="flex items-center gap-2 text-orange-800">
+                      <div className="flex items-center gap-2 text-amber-800">
                         <CreditCard size={20} />
                         <p className="font-semibold">Documento: {personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
                       </div>
@@ -1358,8 +1450,8 @@ export default function App() {
                 </div>
               </Card>
 
-              <Card title="Modificar Información">
-                <p className="text-sm text-gray-600 mb-6 bg-blue-50 p-4 rounded-xl border border-blue-200">
+              <Card title="Modificar Información" icon={Edit2}>
+                <p className="text-sm text-slate-600 mb-6 bg-blue-50 p-4 rounded-xl border border-blue-200">
                   💡 <strong>Instrucción:</strong> Solo complete los campos que desea modificar. Los campos vacíos no serán actualizados.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -1435,7 +1527,7 @@ export default function App() {
                       </>
                     )}
                   </Button>
-                  <Button variant="secondary" onClick={() => {
+                  <Button variant="outline" onClick={() => {
                     setPersonaConsultada(null);
                     setFormModificar({});
                     setErroresModificar({});
@@ -1448,7 +1540,6 @@ export default function App() {
               </Card>
             </>
           )}
-          {message && <Alert message={message} type={messageType} />}
         </div>
       </div>
     );
@@ -1456,24 +1547,24 @@ export default function App() {
 
   if (currentView === 'eliminar') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-gradient-to-r from-red-600 to-red-800 text-white p-6 shadow-xl">
-          <Button variant="secondary" onClick={() => {
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <ViewHeader
+          title="Eliminar Personas"
+          subtitle="Esta acción es permanente y no se puede deshacer"
+          gradient="from-rose-600 to-red-700"
+          breadcrumbItems={['Menú Principal', 'Eliminar Personas']}
+          icon={Trash2}
+          onBack={() => {
             setCurrentView('menu');
             setPersonaConsultada(null);
             setNroDocConsulta('');
-          }} className="mb-4">
-            ← Volver al Menú
-          </Button>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Trash2 size={32} />
-            Eliminar Personas
-          </h1>
-          <p className="text-red-100 mt-2">⚠️ Esta acción es permanente y no se puede deshacer</p>
-        </div>
+          }}
+        />
 
         <div className="max-w-4xl mx-auto p-8">
-          <Card title="Buscar Persona a Eliminar">
+          {message && <Alert message={message} type={messageType} />}
+          
+          <Card title="Buscar Persona a Eliminar" icon={Search}>
             <div className="flex gap-4">
               <Input
                 label="Número de Documento"
@@ -1493,15 +1584,15 @@ export default function App() {
           </Card>
 
           {personaConsultada && (
-            <Card title="Confirmar Eliminación" className="border-l-4 border-red-600">
-              <div className="bg-red-50 border-2 border-red-300 p-6 rounded-xl mb-6">
+            <Card title="Confirmar Eliminación" icon={Trash2}>
+              <div className="bg-rose-50 border-2 border-rose-300 p-6 rounded-xl mb-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-red-100 p-3 rounded-full">
-                    <AlertCircle className="text-red-600" size={32} />
+                  <div className="bg-rose-100 p-3 rounded-full">
+                    <AlertCircle className="text-rose-600" size={32} />
                   </div>
                   <div>
-                    <p className="text-red-800 font-bold text-lg">⚠️ Advertencia: Esta acción no se puede deshacer</p>
-                    <p className="text-red-700 text-sm">Los datos serán eliminados permanentemente del sistema</p>
+                    <p className="text-rose-800 font-bold text-lg">⚠️ Advertencia: Esta acción no se puede deshacer</p>
+                    <p className="text-rose-700 text-sm">Los datos serán eliminados permanentemente del sistema</p>
                   </div>
                 </div>
                 <div className="space-y-3 bg-white p-4 rounded-lg">
@@ -1509,20 +1600,20 @@ export default function App() {
                     <img 
                       src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
                       alt="Foto de perfil" 
-                      className="w-24 h-24 rounded-xl object-cover border-4 border-gray-200 shadow-lg"
+                      className="w-24 h-24 rounded-xl object-cover border-4 border-slate-200 shadow-lg"
                       onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <User className="text-gray-600" size={20} />
+                    <User className="text-slate-600" size={20} />
                     <p><strong>Nombre:</strong> {personaConsultada.primer_nombre} {personaConsultada.segundo_nombre} {personaConsultada.apellidos}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CreditCard className="text-gray-600" size={20} />
+                    <CreditCard className="text-slate-600" size={20} />
                     <p><strong>Documento:</strong> {personaConsultada.tipo_doc} {personaConsultada.nro_doc}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail className="text-gray-600" size={20} />
+                    <Mail className="text-slate-600" size={20} />
                     <p><strong>Correo:</strong> {personaConsultada.correo}</p>
                   </div>
                 </div>
@@ -1541,7 +1632,7 @@ export default function App() {
                     </>
                   )}
                 </Button>
-                <Button variant="secondary" onClick={() => {
+                <Button variant="outline" onClick={() => {
                   setPersonaConsultada(null);
                   setNroDocConsulta('');
                 }} className="flex-1 text-lg py-4">
@@ -1550,7 +1641,6 @@ export default function App() {
               </div>
             </Card>
           )}
-          {message && <Alert message={message} type={messageType} />}
         </div>
       </div>
     );
@@ -1558,20 +1648,20 @@ export default function App() {
 
   if (currentView === 'logs') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 shadow-xl">
-          <Button variant="secondary" onClick={() => setCurrentView('menu')} className="mb-4">
-            ← Volver al Menú
-          </Button>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <FileText size={32} />
-            Consultar Logs del Sistema
-          </h1>
-          <p className="text-purple-100 mt-2">Historial completo de operaciones realizadas</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <ViewHeader
+          title="Consultar Logs del Sistema"
+          subtitle="Historial completo de operaciones realizadas"
+          gradient="from-purple-600 to-violet-700"
+          breadcrumbItems={['Menú Principal', 'Consultar Logs']}
+          icon={FileText}
+          onBack={() => setCurrentView('menu')}
+        />
 
         <div className="max-w-7xl mx-auto p-8">
-          <Card title="Filtros de Búsqueda">
+          {message && <Alert message={message} type={messageType} />}
+          
+          <Card title="Filtros de Búsqueda" icon={Search}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <Select
                 label="Tipo de Operación"
@@ -1597,7 +1687,7 @@ export default function App() {
                 </Button>
               </div>
             </div>
-            <Button variant="secondary" onClick={() => {
+            <Button variant="outline" onClick={() => {
               setFiltroLogs({ tipo_operacion: '', documento: '' });
               handleConsultarLogs();
             }} className="w-full">
@@ -1606,10 +1696,10 @@ export default function App() {
           </Card>
 
           {logs.length > 0 ? (
-            <Card title={`Registros Encontrados: ${logs.length} operaciones`}>
+            <Card title={`Registros Encontrados: ${logs.length} operaciones`} icon={FileText}>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
+                  <thead className="bg-gradient-to-r from-purple-600 to-violet-700 text-white">
                     <tr>
                       <th className="p-4 text-left font-bold rounded-tl-xl">Operación</th>
                       <th className="p-4 text-left font-bold">Usuario</th>
@@ -1619,12 +1709,12 @@ export default function App() {
                   </thead>
                   <tbody>
                     {logs.map((log, idx) => (
-                      <tr key={idx} className="border-b border-gray-200 hover:bg-purple-50 transition-colors animate-fadeIn" style={{ animationDelay: `${idx * 50}ms` }}>
+                      <tr key={idx} className="border-b border-slate-200 hover:bg-purple-50 transition-colors animate-fadeIn" style={{ animationDelay: `${idx * 50}ms` }}>
                         <td className="p-4">
                           <span className={`px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center gap-2 ${
                             log.tipo_operacion === 'CREAR' ? 'bg-green-100 text-green-800' :
-                            log.tipo_operacion === 'MODIFICAR' ? 'bg-orange-100 text-orange-800' :
-                            log.tipo_operacion === 'ELIMINAR' ? 'bg-red-100 text-red-800' :
+                            log.tipo_operacion === 'MODIFICAR' ? 'bg-amber-100 text-amber-800' :
+                            log.tipo_operacion === 'ELIMINAR' ? 'bg-rose-100 text-rose-800' :
                             'bg-blue-100 text-blue-800'
                           }`}>
                             {log.tipo_operacion === 'CREAR' && <Plus size={16} />}
@@ -1634,9 +1724,9 @@ export default function App() {
                             {log.tipo_operacion}
                           </span>
                         </td>
-                        <td className="p-4 font-semibold text-gray-700">{log.usuario_email}</td>
-                        <td className="p-4 font-mono text-gray-800">{log.documento_afectado}</td>
-                        <td className="p-4 text-gray-600">{new Date(log.fecha_transaccion).toLocaleString('es-CO')}</td>
+                        <td className="p-4 font-semibold text-slate-700">{log.usuario_email}</td>
+                        <td className="p-4 font-mono text-slate-800">{log.documento_afectado}</td>
+                        <td className="p-4 text-slate-600">{new Date(log.fecha_transaccion).toLocaleString('es-CO')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1644,16 +1734,15 @@ export default function App() {
               </div>
             </Card>
           ) : (
-            <Card title="Sin Resultados">
+            <Card title="Sin Resultados" icon={FileText}>
               <div className="text-center py-12">
-                <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText size={40} className="text-gray-400" />
+                <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText size={40} className="text-slate-400" />
                 </div>
-                <p className="text-gray-500 text-lg">No se encontraron registros con los filtros seleccionados</p>
+                <p className="text-slate-500 text-lg">No se encontraron registros con los filtros seleccionados</p>
               </div>
             </Card>
           )}
-          {message && <Alert message={message} type={messageType} />}
         </div>
       </div>
     );
