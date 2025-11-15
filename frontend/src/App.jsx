@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X } from 'lucide-react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock } from 'lucide-react';
 
 const API_URL = '';
 
@@ -55,6 +55,20 @@ const validaciones = {
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
     if (!validTypes.includes(file.type)) return 'Formato inválido. Use JPG, PNG o GIF';
     return null;
+  },
+  password: (value) => {
+    if (!value || value.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+    return null;
+  },
+  nombre: (value) => {
+    if (!value || value.trim().length === 0) return 'Nombre completo requerido';
+    if (value.length > 100) return 'Máximo 100 caracteres';
+    return null;
+  },
+  codigo: (value) => {
+    if (!value || value.trim().length === 0) return 'Código requerido';
+    if (!/^[0-9]{6}$/.test(value)) return 'El código debe tener 6 dígitos';
+    return null;
   }
 };
 
@@ -63,7 +77,8 @@ const Button = ({ onClick, children, variant = 'primary', disabled = false, clas
   const variants = {
     primary: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed',
     danger: 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed',
-    secondary: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed'
+    secondary: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed',
+    success: 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed'
   };
   return (
     <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
@@ -284,6 +299,15 @@ export default function App() {
   const [messageType, setMessageType] = useState('');
   const [stats, setStats] = useState({ total: 0, created: 0, modified: 0, consulted: 0 });
 
+  // Estados para registro
+  const [registroEmail, setRegistroEmail] = useState('');
+  const [registroPassword, setRegistroPassword] = useState('');
+  const [registroNombre, setRegistroNombre] = useState('');
+  const [codigoVerificacion, setCodigoVerificacion] = useState('');
+  const [esperandoCodigo, setEsperandoCodigo] = useState(false);
+  const [emailRegistrado, setEmailRegistrado] = useState('');
+  const [erroresRegistro, setErroresRegistro] = useState({});
+
   const [formCrear, setFormCrear] = useState({
     primer_nombre: '',
     segundo_nombre: '',
@@ -336,6 +360,95 @@ export default function App() {
     setMessage(msg);
     setMessageType(type);
     setTimeout(() => setMessage(''), 5000);
+  };
+
+  const validarFormRegistro = () => {
+    const errores = {};
+
+    const errorEmail = validaciones.email(registroEmail);
+    if (errorEmail) errores.email = errorEmail;
+
+    const errorPassword = validaciones.password(registroPassword);
+    if (errorPassword) errores.password = errorPassword;
+
+    const errorNombre = validaciones.nombre(registroNombre);
+    if (errorNombre) errores.nombre = errorNombre;
+
+    setErroresRegistro(errores);
+    return Object.keys(errores).length === 0;
+  };
+
+  const handleSignup = async () => {
+    if (!validarFormRegistro()) {
+      showMessage('Por favor corrija los errores en el formulario', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: registroEmail,
+          password: registroPassword,
+          name: registroNombre
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showMessage('Usuario creado. Revise su email para el código de verificación');
+        setEmailRegistrado(registroEmail);
+        setEsperandoCodigo(true);
+      } else {
+        showMessage(data.detail || 'Error al crear usuario', 'error');
+      }
+    } catch (error) {
+      showMessage('Error de conexión: ' + error.message, 'error');
+    }
+    setLoading(false);
+  };
+
+  const handleVerifyEmail = async () => {
+    const errorCodigo = validaciones.codigo(codigoVerificacion);
+    if (errorCodigo) {
+      showMessage(errorCodigo, 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailRegistrado,
+          code: codigoVerificacion
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showMessage('Email verificado correctamente. Ya puede iniciar sesión');
+        // Resetear estados de registro
+        setRegistroEmail('');
+        setRegistroPassword('');
+        setRegistroNombre('');
+        setCodigoVerificacion('');
+        setEsperandoCodigo(false);
+        setEmailRegistrado('');
+        setErroresRegistro({});
+        setCurrentView('login');
+      } else {
+        showMessage(data.detail || 'Código incorrecto', 'error');
+      }
+    } catch (error) {
+      showMessage('Error de conexión: ' + error.message, 'error');
+    }
+    setLoading(false);
   };
 
   const handleLogin = async () => {
@@ -630,7 +743,149 @@ export default function App() {
     setLoading(false);
   };
 
+  // VISTA DE LOGIN Y REGISTRO
   if (!token) {
+    if (currentView === 'signup' && !esperandoCodigo) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+          </div>
+
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
+            <div className="text-center mb-8">
+              <div className="bg-gradient-to-r from-green-600 to-green-800 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
+                <UserPlus size={40} className="text-white" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">Crear Cuenta</h1>
+              <p className="text-gray-600 font-medium">Regístrese en el sistema</p>
+            </div>
+
+            <div className="space-y-5">
+              <Input
+                label="Nombre Completo"
+                type="text"
+                value={registroNombre}
+                onChange={(e) => setRegistroNombre(e.target.value)}
+                error={erroresRegistro.nombre}
+                required
+                placeholder="Juan Pérez García"
+                icon={User}
+                maxLength={100}
+              />
+              <Input
+                label="Correo Electrónico"
+                type="email"
+                value={registroEmail}
+                onChange={(e) => setRegistroEmail(e.target.value)}
+                error={erroresRegistro.email}
+                required
+                placeholder="correo@ejemplo.com"
+                icon={Mail}
+              />
+              <Input
+                label="Contraseña"
+                type="password"
+                value={registroPassword}
+                onChange={(e) => setRegistroPassword(e.target.value)}
+                error={erroresRegistro.password}
+                required
+                placeholder="Mínimo 6 caracteres"
+                icon={Lock}
+              />
+              <Button onClick={handleSignup} disabled={loading} className="w-full text-lg py-4" variant="success">
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Creando cuenta...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus size={20} />
+                    Crear Cuenta
+                  </>
+                )}
+              </Button>
+              <Button onClick={() => setCurrentView('login')} variant="secondary" className="w-full text-lg py-4">
+                ← Volver al Login
+              </Button>
+            </div>
+
+            {message && <div className="mt-6"><Alert message={message} type={messageType} /></div>}
+          </div>
+        </div>
+      );
+    }
+
+    if (esperandoCodigo) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          </div>
+
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
+            <div className="text-center mb-8">
+              <div className="bg-gradient-to-r from-purple-600 to-purple-800 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Mail size={40} className="text-white" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">Verificar Email</h1>
+              <p className="text-gray-600 font-medium">Se envió un código a:</p>
+              <p className="text-purple-600 font-bold mt-1">{emailRegistrado}</p>
+            </div>
+
+            <div className="space-y-5">
+              <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mb-4">
+                <p className="text-sm text-purple-800 text-center">
+                  💡 Revise su bandeja de entrada o spam
+                </p>
+              </div>
+              <Input
+                label="Código de Verificación"
+                type="text"
+                value={codigoVerificacion}
+                onChange={(e) => setCodigoVerificacion(e.target.value)}
+                required
+                placeholder="123456"
+                icon={Lock}
+                maxLength={6}
+                onKeyPress={(e) => e.key === 'Enter' && handleVerifyEmail()}
+              />
+              <Button onClick={handleVerifyEmail} disabled={loading} className="w-full text-lg py-4" variant="success">
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Verificando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={20} />
+                    Verificar Email
+                  </>
+                )}
+              </Button>
+              <Button 
+                onClick={() => {
+                  setEsperandoCodigo(false);
+                  setCodigoVerificacion('');
+                  setCurrentView('login');
+                }} 
+                variant="secondary" 
+                className="w-full text-lg py-4"
+              >
+                Cancelar
+              </Button>
+            </div>
+
+            {message && <div className="mt-6"><Alert message={message} type={messageType} /></div>}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
@@ -666,7 +921,7 @@ export default function App() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              icon={AlertCircle}
+              icon={Lock}
               onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
             />
             <Button onClick={handleLogin} disabled={loading} className="w-full text-lg py-4">
@@ -682,13 +937,17 @@ export default function App() {
                 </>
               )}
             </Button>
+            <Button onClick={() => setCurrentView('signup')} variant="success" className="w-full text-lg py-4">
+              <UserPlus size={20} />
+              Crear Cuenta Nueva
+            </Button>
           </div>
 
           {message && <div className="mt-6"><Alert message={message} type={messageType} /></div>}
 
           <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-            <p className="text-sm text-gray-500">Sistema Empresarial de Gestión de Datos</p>
-            <p className="text-xs text-gray-400 mt-1">Versión 2.0 - Seguro y Confiable</p>
+            <p className="text-sm text-gray-500">Sistema de Gestión de Datos</p>
+            <p className="text-xs text-gray-400 mt-1">Seguro y Confiable</p>
           </div>
         </div>
       </div>
