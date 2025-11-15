@@ -465,12 +465,13 @@ const StatCard = ({ title, value, icon: Icon, color, delay = 0 }) => (
   </div>
 );
 
+// Breadcrumb modificado - texto blanco sin efectos hover
 const Breadcrumb = ({ items }) => (
-  <nav className="flex items-center space-x-2 text-sm text-slate-600 mb-6">
+  <nav className="flex items-center space-x-2 text-sm text-white mb-6">
     {items.map((item, index) => (
       <React.Fragment key={index}>
-        {index > 0 && <ChevronRight size={16} className="text-slate-400" />}
-        <span className={`${index === items.length - 1 ? 'text-slate-800 font-semibold' : 'text-slate-600 hover:text-blue-600 cursor-pointer'}`}>
+        {index > 0 && <ChevronRight size={16} className="text-white/70" />}
+        <span className={`${index === items.length - 1 ? 'text-white font-semibold' : 'text-white/90'}`}>
           {item}
         </span>
       </React.Fragment>
