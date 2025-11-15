@@ -67,7 +67,7 @@ async def _registrar_log(tipo, email, doc, desc, token, datos_anteriores=None, d
         }
 
         async with httpx.AsyncClient(timeout=config.SERVICE_TIMEOUT) as client:
-            await client.post(f"{config.LOGS_SERVICE_URL}/registrar", json=payload, headers=headers)
+            await client.post(f"{config.LOGS_URL}/registrar", json=payload, headers=headers)
 
     except Exception as e:
         logger.warning(f"No se registró log: {str(e)}")

@@ -1,0 +1,27 @@
+server {
+  listen 80;
+  server_name localhost;
+
+  root /usr/share/nginx/html;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /auth/ {
+    proxy_pass ${API_URL}/auth/;
+  }
+
+  location /personas/ {
+    proxy_pass ${API_URL}/personas/;
+  }
+
+  location /logs/ {
+    proxy_pass ${API_URL}/logs;
+  }
+
+  location /consulta-natural/ {
+    proxy_pass ${API_URL}/consulta-natural/;
+  }
+}

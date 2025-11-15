@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
-
+from typing import Optional
 class Config(BaseSettings):
     """Configuración del servicio RAG con Google Gemini"""
 
@@ -13,19 +13,19 @@ class Config(BaseSettings):
         return f"{self.ROBLE_API_URL}/database/{self.ROBLE_DB_NAME}"
 
     # ========== GOOGLE AI STUDIO / GEMINI ==========
-    GOOGLE_API_KEY: str 
-    GOOGLE_MODEL: str = Field(default="gemini-2.5-flash")
+    GOOGLE_API_KEY: Optional[str] = None
+    GOOGLE_MODEL:  Optional[str] = None
 
     # ========== SERVICIOS ==========
-    LOGS_SERVICE_URL: str = Field(default="http://servicio-logs:8005")
+    LOGS_URL:  Optional[str] = None
 
     # ========== TIMEOUTS ==========
-    ROBLE_TIMEOUT: int = Field(default=30)
-    GOOGLE_TIMEOUT: int = Field(default=60)
-    SERVICE_TIMEOUT: int = Field(default=5)
+    ROBLE_TIMEOUT:  Optional[int] = None
+    GOOGLE_TIMEOUT:  Optional[int] = None
+    SERVICE_TIMEOUT:  Optional[int] = None
 
     # ========== TABLAS ROBLE ==========
-    TABLA_PERSONAS: str = Field(default="persona")
+    TABLA_PERSONAS: Optional[str] = None
 
     # ========== LOGGING ==========
     DEBUG: bool = Field(default=False)

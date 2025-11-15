@@ -4,6 +4,8 @@ services:
     build: 
       context: ./backend/api-gateway
     container_name: api-gateway
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     depends_on:
@@ -23,6 +25,8 @@ services:
     build:
       context: ./backend/auth-service
     container_name: auth-service
+    env_file:
+      - .env
     ports:
       - "8001:8001"
     restart: unless-stopped
@@ -34,6 +38,8 @@ services:
     build:
       context: ./backend/log-service
     container_name: log-service
+    env_file:
+      - .env
     ports:
       - "8006:8006"
     restart: unless-stopped
@@ -45,6 +51,8 @@ services:
       context: ./backend/person-service
       dockerfile: crear_service/Dockerfile
     container_name: crear-service
+    env_file:
+      - .env
     ports:
       - "8002:8002"
     restart: unless-stopped
@@ -56,6 +64,8 @@ services:
       context: ./backend/person-service
       dockerfile: consultar_service/Dockerfile
     container_name: consultar-service
+    env_file:
+      - .env
     ports:
       - "8003:8003"
     restart: unless-stopped
@@ -67,6 +77,8 @@ services:
       context: ./backend/person-service
       dockerfile: modificar_service/Dockerfile
     container_name: modificar-service
+    env_file:
+      - .env
     ports:
       - "8004:8004"
     restart: unless-stopped
@@ -78,6 +90,8 @@ services:
       context: ./backend/person-service
       dockerfile: borrar_service/Dockerfile
     container_name: borrar-service
+    env_file:
+      - .env
     ports:
       - "8005:8005"
     restart: unless-stopped
@@ -88,6 +102,8 @@ services:
     build:
       context: ./backend/rag-service
     container_name:  consulta-natural-service
+    env_file:
+      - .env
     ports:
       - "8007:8007"
     restart: unless-stopped
@@ -98,6 +114,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    environment:
+      - API_URL=${API_GATEWAY_URL}
+    env_file:
+      - .env
     container_name: gestion-personas-frontend
     ports:
       - "80:80"
