@@ -21,11 +21,11 @@ class RegistrarLogRequest(BaseModel):
     """Solicitud para registrar un log completo"""
     tipo_operacion: str                      # CREAR, CONSULTAR, MODIFICAR, ELIMINAR
     usuario_email: str
-    documento_afectado: str
+    documento_afectado: Optional[Any] = None
     datos_nuevos: Optional[Any] = None
     datos_anteriores: Optional[Any] = None
     pregunta_rag: Optional[str] = None
-    respuesta_rag: Optional[int] = None
+    respuesta_rag: Optional[str] = None
     fecha_transaccion: Optional[datetime] = None
 
 

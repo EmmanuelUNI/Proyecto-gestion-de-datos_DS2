@@ -15,6 +15,10 @@ class RAGManager:
             if not config.GOOGLE_API_KEY:
                 raise ValueError("❌ GOOGLE_API_KEY no está configurada")
 
+            # Validar modelo
+            if not config.GOOGLE_MODEL:
+                raise ValueError("❌ GOOGLE_MODEL no está configurada")
+
             # Inicializar cliente con clave explícita
             self.client = genai.Client(api_key=config.GOOGLE_API_KEY)
             logger.info(f"✅ Cliente Gemini ({config.GOOGLE_MODEL}) inicializado correctamente")
@@ -41,7 +45,9 @@ Contexto - Datos disponibles:
 Pregunta del usuario: {pregunta}
 
 Responde basándote SOLO en los datos proporcionados arriba."""
-
+            if not config.GOOGLE_MODEL:
+                raise ValueError("❌ GOOGLE_MODEL no está configurada")
+            
             response = self.client.models.generate_content(
                 model=config.GOOGLE_MODEL,
                 contents=prompt_completo
