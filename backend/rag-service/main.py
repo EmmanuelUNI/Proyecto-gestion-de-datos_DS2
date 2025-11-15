@@ -1,161 +1,150 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from typing import Optional
+import logging
+import jwt
 import httpx
-from roble_db import RobleDB
+from rag import RAGManager
+from roble_rag import RobleRAGClient
+from config import config
 
-app = FastAPI()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="Servicio de Consulta RAG - Google Gemini")
 security = HTTPBearer()
-roble = RobleDB()
 
-LOGS_SERVICE = "http://servicio-logs:8004"
+# Inicializar con manejo de errores
+try:
+    rag_manager = RAGManager()
+    roble_client = RobleRAGClient()
+    logger.info(f"✅ Usando modelo: {config.GOOGLE_MODEL}")
+except Exception as e:
+    logger.error(f"❌ Error inicializando: {str(e)}")
+    rag_manager = None
+    roble_client = None
 
-class CrearPersonaRequest(BaseModel):
-    primer_nombre: str
-    segundo_nombre: Optional[str] = None
-    apellidos: str
-    fecha_nacimiento: str
-    genero: str
-    correo: str
-    celular: str
-    nro_doc: str
-    tipo_doc: str
 
-@app.post("/crear")
-async def crear_persona(request: CrearPersonaRequest, 
+# ========== MODELOS ==========
+
+class ConsultaRAGRequest(BaseModel):
+    """Solicitud de consulta en lenguaje natural"""
+    pregunta: str
+
+
+# ========== ENDPOINTS ==========
+
+@app.post("/consultar")
+async def consultar_rag(request: ConsultaRAGRequest,
                        credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Crea una nueva persona con validaciones"""
+    """Responde preguntas en lenguaje natural usando RAG + Gemini"""
     try:
-       
-        # Verificar que no exista previamente
-        existente = await roble.obtener_persona(request.nro_doc, credentials.credentials)
-        if existente:
-            raise HTTPException(status_code=409, detail="Documento ya registrado")
-        # Insertar en ROBLE
-        persona_data = {
-            "primer_nombre": request.primer_nombre,
-            "segundo_nombre": request.segundo_nombre or "",
-            "apellidos": request.apellidos,
-            "fecha_nacimiento": request.fecha_nacimiento,
-            "genero": request.genero,
-            "correo": request.correo,
-            "celular": request.celular,
-            "nro_doc": request.nro_doc,
-            "tipo_doc": request.tipo_doc
+        logger.info(f"Pregunta RAG recibida: {request.pregunta}")
+        
+        # Validar que Gemini esté configurado
+        if rag_manager is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Google Gemini no está configurado"
+            )
+
+        # Validar que el cliente Roble esté inicializado
+        if roble_client is None:
+            logger.error("RobleRAGClient no está configurado")
+            raise HTTPException(
+                status_code=500,
+                detail="Servicio de contexto (Roble) no está disponible"
+            )
+        
+        # Obtener datos de contexto
+        personas = await roble_client.obtener_todas_personas(credentials.credentials)
+        
+        if not personas:
+            logger.warning("No se encontraron personas para el contexto")
+            return {
+                "status": "success",
+                "respuesta": "No hay datos disponibles en el sistema",
+                "contexto_registros": 0,
+                "modelo": config.GOOGLE_MODEL
+            }
+        
+        # Generar respuesta
+        respuesta = await rag_manager.responder_pregunta(
+            pregunta=request.pregunta,
+            contexto_datos=personas
+        )
+        
+        # Registrar en logs
+        await _registrar_log(
+            tipo_operacion="CONSULTAR_RAG",
+            usuario_email=_extraer_email(credentials.credentials),
+            descripcion=f"Pregunta: {request.pregunta}"
+        )
+        
+        logger.info(f"Consulta RAG procesada exitosamente")
+        return {
+            "status": "success",
+            "pregunta": request.pregunta,
+            "respuesta": respuesta,
+            "contexto_registros": len(personas) if isinstance(personas, list) else 1,
+            "modelo": config.GOOGLE_MODEL,
+            "proveedor": "google"
         }
-        resultado = await roble.insertar_persona(persona_data, credentials.credentials)
         
-        # Registrar en log
-        await _registrar_log(
-            tipo_operacion="CREAR",
-            usuario_email=_extraer_email(credentials.credentials),
-            documento=request.nro_doc,
-            descripcion=f"Creada persona: {request.primer_nombre} {request.apellidos}"
-        )
-        
-        return {"status": "success", "data": resultado}
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error procesando consulta RAG: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
-@app.get("/consultar/{nro_doc}")
-async def consultar_persona(nro_doc: str, 
-                           credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Consulta una persona por documento"""
+
+@app.get("/health")
+async def health_check():
+    """Health check para Docker"""
+    configurado = bool(config.GOOGLE_API_KEY)
     
-    try:
-        resultado = await roble.obtener_persona(nro_doc, credentials.credentials)
-        
-        if not resultado:
-            raise HTTPException(status_code=404, detail="Persona no encontrada")
-        
-        # Registrar en log
-        await _registrar_log(
-            tipo_operacion="CONSULTAR",
-            usuario_email=_extraer_email(credentials.credentials),
-            documento=nro_doc,
-            descripcion="Consultada información personal"
-        )
-        
-        return {"status": "success", "data": resultado}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "status": "healthy",
+        "service": "consulta-rag",
+        "modelo": config.GOOGLE_MODEL,
+        "proveedor": "google",
+        "google_configurado": configurado
+    }
 
-@app.put("/modificar/{nro_doc}")
-async def modificar_persona(nro_doc: str, 
-                           request: dict, 
-                           credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Modifica datos de una persona existente"""
-    
-    try:
-        # Verificar que existe
-        existente = await roble.obtener_persona(nro_doc, credentials.credentials)
-        if not existente:
-            raise HTTPException(status_code=404, detail="Persona no encontrada")
-        
-        resultado = await roble.actualizar_persona(nro_doc, request, credentials.credentials)
-        
-        # Registrar en log
-        await _registrar_log(
-            tipo_operacion="MODIFICAR",
-            usuario_email=_extraer_email(credentials.credentials),
-            documento=nro_doc,
-            descripcion=f"Modificados campos: {', '.join(request.keys())}"
-        )
-        
-        return {"status": "success", "data": resultado}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/eliminar/{nro_doc}")
-async def eliminar_persona(nro_doc: str, 
-                          credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Elimina una persona"""
-    
-    try:
-        # Verificar que existe
-        existente = await roble.obtener_persona(nro_doc, credentials.credentials)
-        if not existente:
-            raise HTTPException(status_code=404, detail="Persona no encontrada")
-        
-        # Eliminar
-        resultado = await roble.eliminar_persona(nro_doc, credentials.credentials)
-        
-        # Registrar en log
-        await _registrar_log(
-            tipo_operacion="ELIMINAR",
-            usuario_email=_extraer_email(credentials.credentials),
-            documento=nro_doc,
-            descripcion="Eliminada persona del sistema"
-        )
-        
-        return {"status": "success", "message": "Persona eliminada"}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@app.get("/info")
+async def info():
+    """Información del servicio RAG"""
+    return {
+        "nombre": "Servicio de Consulta RAG - Google Gemini",
+        "version": "1.0",
+        "modelo": config.GOOGLE_MODEL,
+        "proveedor": "google",
+        "descripcion": "Responde preguntas en lenguaje natural usando Gemini + contexto"
+    }
 
-async def _registrar_log(tipo_operacion, usuario_email, documento, descripcion):
+
+# ========== FUNCIONES AUXILIARES ==========
+
+async def _registrar_log(tipo_operacion: str, usuario_email: str, descripcion: str):
     """Registra operación en servicio de logs"""
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=config.SERVICE_TIMEOUT) as client:
             await client.post(
-                f"{LOGS_SERVICE}/registrar",
+                f"{config.LOGS_SERVICE_URL}/registrar",
                 json={
                     "tipo_operacion": tipo_operacion,
                     "usuario_email": usuario_email,
-                    "documento": documento,
+                    "documento": "RAG",
                     "descripcion": descripcion
                 }
             )
-    except:
-        pass  # No bloquear si falla el log
+    except Exception as e:
+        logger.warning(f"No se pudo registrar en log: {str(e)}")
 
-def _extraer_email(token):
-    """Extrae email del token (implementación simplificada)"""
-    import jwt
+
+def _extraer_email(token: str) -> str:
+    """Extrae email del token JWT"""
     try:
         payload = jwt.decode(token, options={"verify_signature": False})
         return payload.get("email", "desconocido")
