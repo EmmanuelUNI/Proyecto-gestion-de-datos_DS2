@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, Settings, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles } from 'lucide-react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, Settings, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles, Eye, EyeOff } from 'lucide-react';
 
 const API_URL = '';
 
@@ -57,7 +57,12 @@ const validaciones = {
     return null;
   },
   password: (value) => {
-    if (!value || value.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+    if (!value) return 'Contraseña requerida';
+    if (value.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    if (!/[A-Z]/.test(value)) return 'Debe contener al menos una letra mayúscula';
+    if (!/[a-z]/.test(value)) return 'Debe contener al menos una letra minúscula';
+    if (!/[0-9]/.test(value)) return 'Debe contener al menos un número';
+    if (!/[!@#$_.-]/.test(value)) return 'Debe contener al menos un símbolo (!, @, #, $, _, -, .)';
     return null;
   },
   nombre: (value) => {
@@ -156,6 +161,97 @@ const Input = ({ label, type = 'text', value, onChange, error, required = false,
     )}
   </div>
 );
+
+// Nuevo componente PasswordInput con validación visual mejorada
+const PasswordInput = ({ label, value, onChange, error, required = false, placeholder = '', showPasswordRequirements = false }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const validatePassword = (password) => {
+    const requirements = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      symbol: /[!@#$_.-]/.test(password)
+    };
+    return requirements;
+  };
+
+  const requirements = validatePassword(value);
+  const allValid = Object.values(requirements).every(Boolean);
+
+  return (
+    <div className="group">
+      <label className="block text-slate-700 mb-2 font-semibold text-sm">
+        {label} {required && <span className="text-rose-500">*</span>}
+      </label>
+      <div className="relative">
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors duration-300">
+          <Lock size={20} />
+        </div>
+        <input
+          type={showPassword ? "text" : "password"}
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            if (!touched) setTouched(true);
+          }}
+          placeholder={placeholder}
+          className={`w-full pl-12 pr-12 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+            error 
+              ? 'border-rose-500 focus:ring-rose-500 bg-rose-50' 
+              : touched && !allValid
+                ? 'border-amber-500 focus:ring-amber-500 bg-amber-50'
+                : 'border-slate-300 focus:ring-blue-600 focus:border-blue-600 bg-slate-50 hover:bg-white'
+          }`}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors duration-300"
+        >
+          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
+      </div>
+      
+      {showPasswordRequirements && (
+        <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <p className="text-sm font-semibold text-slate-700 mb-2">Requisitos de contraseña:</p>
+          <div className="space-y-1 text-xs">
+            <div className={`flex items-center gap-2 ${requirements.length ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full ${requirements.length ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+              Al menos 8 caracteres
+            </div>
+            <div className={`flex items-center gap-2 ${requirements.uppercase ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full ${requirements.uppercase ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+              Una letra mayúscula (A-Z)
+            </div>
+            <div className={`flex items-center gap-2 ${requirements.lowercase ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full ${requirements.lowercase ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+              Una letra minúscula (a-z)
+            </div>
+            <div className={`flex items-center gap-2 ${requirements.number ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full ${requirements.number ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+              Un número (0-9)
+            </div>
+            <div className={`flex items-center gap-2 ${requirements.symbol ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full ${requirements.symbol ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+              Un símbolo (! @ # $ _ - .)
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <p className="text-rose-500 text-sm mt-2 flex items-center gap-1 animate-slideDown">
+          <AlertCircle size={14} /> 
+          {error}
+        </p>
+      )}
+    </div>
+  );
+};
 
 const Select = ({ label, value, onChange, options, error, required = false, icon: Icon }) => (
   <div className="group">
@@ -945,15 +1041,14 @@ export default function App() {
                 placeholder="correo@ejemplo.com"
                 icon={Mail}
               />
-              <Input
+              <PasswordInput
                 label="Contraseña"
-                type="password"
                 value={registroPassword}
-                onChange={(e) => setRegistroPassword(e.target.value)}
+                onChange={setRegistroPassword}
                 error={erroresRegistro.password}
                 required
-                placeholder="Mínimo 6 caracteres"
-                icon={Lock}
+                placeholder="Ingrese una contraseña segura"
+                showPasswordRequirements={true}
               />
               <Button onClick={handleSignup} disabled={loading} className="w-full text-lg py-4" variant="primary">
                 {loading ? (
