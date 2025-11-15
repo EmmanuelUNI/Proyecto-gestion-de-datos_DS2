@@ -28,7 +28,7 @@ CONSULTAR_URL = "http://consultar-service:8003"
 MODIFICAR_URL = "http://modificar-service:8004"
 ELIMINAR_URL = "http://borrar-service:8005"
 LOGS_URL = "http://log-service:8006"
-
+RAG_URL = "http://consulta-natural-service:8007"
 
 # =====================================================
 # FUNCIONES AUXILIARES
@@ -91,12 +91,12 @@ async def eliminar_persona(nro_doc: str, credentials: HTTPAuthorizationCredentia
     """Ruta para eliminar persona"""
     return await _forward_request("DELETE", f"{ELIMINAR_URL}/eliminar/{nro_doc}", token=credentials.credentials)
 
-""""
 @app.post("/consulta-natural")
 async def consulta_natural(request: dict, credentials: HTTPAuthorizationCredentials = Depends(security)):
 
     return await _forward_request("POST", f"{RAG_URL}/consultar", token=credentials.credentials, json=request)
-"""
+
+
 @app.post("/logs/registrar")
 async def registrar_log(request: dict, credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Registrar un log"""

@@ -84,6 +84,16 @@ services:
     networks:
       - backend-network
 
+  consulta-natural-service:
+    build:
+      context: ./backend/rag-service
+    container_name:  consulta-natural-service
+    ports:
+      - "8007:8007"
+    restart: unless-stopped
+    networks:
+      - backend-network
+
   frontend:
     build:
       context: ./frontend
