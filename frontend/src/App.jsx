@@ -589,7 +589,7 @@ export default function App() {
         setToken(data.access_token);
         setUserEmail(email);
         setCurrentView('menu');
-        showMessage('Login exitoso');
+        // Eliminado: showMessage('Login exitoso');
       } else {
         showMessage(data.detail || 'Credenciales inválidas', 'error');
       }
@@ -1533,21 +1533,34 @@ export default function App() {
           {message && <Alert message={message} type={messageType} />}
           
           <Card title="Buscar Persona" icon={Search}>
-            <div className="flex gap-4">
+            <div className="space-y-4">
               <Input
                 label="Número de Documento"
                 value={nroDocConsulta}
                 onChange={(e) => setNroDocConsulta(e.target.value)}
-                placeholder="1234567890"
-                className="flex-1"
+                placeholder="Ingrese el número de documento (máximo 10 dígitos)"
                 icon={CreditCard}
+                maxLength={10}
                 onKeyPress={(e) => e.key === 'Enter' && handleConsultarPersona()}
               />
-              <div className="flex items-end">
-                <Button onClick={handleConsultarPersona} disabled={loading} className="px-8">
-                  <Search size={20} /> {loading ? 'Buscando...' : 'Buscar'}
-                </Button>
-              </div>
+              <Button 
+                onClick={handleConsultarPersona} 
+                disabled={loading} 
+                className="w-full text-lg py-4"
+                variant="primary"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Buscando...
+                  </>
+                ) : (
+                  <>
+                    <Search size={20} />
+                    Buscar Persona
+                  </>
+                )}
+              </Button>
             </div>
           </Card>
 
@@ -1628,21 +1641,34 @@ export default function App() {
           
           {!personaConsultada ? (
             <Card title="Buscar Persona" icon={Search}>
-              <div className="flex gap-4">
+              <div className="space-y-4">
                 <Input
                   label="Número de Documento"
                   value={nroDocConsulta}
                   onChange={(e) => setNroDocConsulta(e.target.value)}
-                  placeholder="1234567890"
-                  className="flex-1"
+                  placeholder="Ingrese el número de documento (máximo 10 dígitos)"
                   icon={CreditCard}
+                  maxLength={10}
                   onKeyPress={(e) => e.key === 'Enter' && handleConsultarPersona()}
                 />
-                <div className="flex items-end">
-                  <Button onClick={handleConsultarPersona} disabled={loading} className="px-8">
-                    <Search size={20} /> {loading ? 'Buscando...' : 'Buscar'}
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleConsultarPersona} 
+                  disabled={loading} 
+                  className="w-full text-lg py-4"
+                  variant="primary"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Buscando...
+                    </>
+                  ) : (
+                    <>
+                      <Search size={20} />
+                      Buscar Persona
+                    </>
+                  )}
+                </Button>
               </div>
             </Card>
           ) : (
@@ -1784,21 +1810,34 @@ export default function App() {
           {message && <Alert message={message} type={messageType} />}
           
           <Card title="Buscar Persona a Eliminar" icon={Search}>
-            <div className="flex gap-4">
+            <div className="space-y-4">
               <Input
                 label="Número de Documento"
                 value={nroDocConsulta}
                 onChange={(e) => setNroDocConsulta(e.target.value)}
-                placeholder="1234567890"
-                className="flex-1"
+                placeholder="Ingrese el número de documento (máximo 10 dígitos)"
                 icon={CreditCard}
+                maxLength={10}
                 onKeyPress={(e) => e.key === 'Enter' && handleConsultarPersona()}
               />
-              <div className="flex items-end">
-                <Button onClick={handleConsultarPersona} disabled={loading} className="px-8">
-                  <Search size={20} /> {loading ? 'Buscando...' : 'Buscar'}
-                </Button>
-              </div>
+              <Button 
+                onClick={handleConsultarPersona} 
+                disabled={loading} 
+                className="w-full text-lg py-4"
+                variant="primary"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Buscando...
+                  </>
+                ) : (
+                  <>
+                    <Search size={20} />
+                    Buscar Persona
+                  </>
+                )}
+              </Button>
             </div>
           </Card>
 
