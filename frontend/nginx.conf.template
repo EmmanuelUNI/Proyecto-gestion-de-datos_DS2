@@ -11,17 +11,25 @@ server {
 
   location /auth/ {
     proxy_pass ${API_URL}/auth/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
   }
 
   location /personas/ {
     proxy_pass ${API_URL}/personas/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
   }
 
-  location /logs/ {
+  location /logs {
     proxy_pass ${API_URL}/logs;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
   }
 
-  location /consulta-natural/ {
-    proxy_pass ${API_URL}/consulta-natural/;
+  location /consulta-natural {
+    proxy_pass ${API_URL}/consulta-natural;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
   }
 }

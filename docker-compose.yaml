@@ -115,7 +115,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      - API_URL=${API_GATEWAY_URL}
+      - API_URL=http://api-gateway:8000  # Usar directamente la URL sin referencia
     env_file:
       - .env
     container_name: gestion-personas-frontend
@@ -125,7 +125,7 @@ services:
       - api-gateway
     restart: unless-stopped
     networks:
-      - frontend-network  
+      - frontend-network
 
 
 networks:
