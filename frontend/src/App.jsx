@@ -77,6 +77,43 @@ const validaciones = {
   }
 };
 
+// Función para formatear texto con Markdown
+const formatMessageWithMarkdown = (text) => {
+  if (!text) return null;
+
+  // Procesar encabezados
+  text = text.replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold mb-4 text-slate-800">$1</h1>');
+  text = text.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold mb-3 text-slate-800">$1</h2>');
+  text = text.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold mb-2 text-slate-800">$1</h3>');
+
+  // Procesar negritas
+  text = text.replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-slate-800">$1</strong>');
+
+  // Procesar listas ordenadas
+  text = text.replace(/^\d+\.\s+(.*$)/gim, '<li class="ml-4 mb-2 text-slate-700">$1</li>');
+  
+  // Procesar listas con asteriscos
+  text = text.replace(/^\*\s+(.*$)/gim, '<li class="ml-4 mb-2 text-slate-700">$1</li>');
+
+  // Agrupar listas ordenadas
+  text = text.replace(/(<li class="ml-4 mb-2 text-slate-700">.*<\/li>)+/gim, (match) => {
+    return `<ol class="list-decimal ml-6 mb-4 space-y-2">${match}</ol>`;
+  });
+
+  // Agrupar listas con asteriscos
+  text = text.replace(/(<li class="ml-4 mb-2 text-slate-700">.*<\/li>)+/gim, (match) => {
+    return `<ul class="list-disc ml-6 mb-4 space-y-2">${match}</ul>`;
+  });
+
+  // Procesar saltos de línea
+  text = text.replace(/\n/g, '<br>');
+
+  // Procesar texto normal
+  text = text.replace(/^(?!<[hou])(.*$)/gim, '<p class="mb-3 text-slate-700 leading-relaxed">$1</p>');
+
+  return <div dangerouslySetInnerHTML={{ __html: text }} />;
+};
+
 const Button = ({ onClick, children, variant = 'primary', disabled = false, className = '', size = 'md', ...props }) => {
   const baseStyle = 'rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95 shadow-lg hover:shadow-xl border border-transparent';
   
@@ -467,7 +504,7 @@ const ViewHeader = ({ title, subtitle, gradient, breadcrumbItems, icon: Icon, on
   </div>
 );
 
-// Componente de mensaje del chat
+// Componente de mensaje del chat actualizado con Markdown
 const ChatMessage = ({ message, isUser }) => (
   <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 animate-fadeIn`}>
     <div className={`flex items-start gap-3 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -480,7 +517,9 @@ const ChatMessage = ({ message, isUser }) => (
           : 'bg-white text-slate-800 border border-slate-200'
       }`}>
         <p className="text-sm font-medium mb-1 opacity-80">{isUser ? 'Tú' : 'Asistente IA'}</p>
-        <p className="whitespace-pre-wrap leading-relaxed">{message}</p>
+        <div className="whitespace-pre-wrap leading-relaxed">
+          {isUser ? message : formatMessageWithMarkdown(message)}
+        </div>
       </div>
     </div>
   </div>
