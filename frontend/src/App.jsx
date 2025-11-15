@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, Settings, BarChart3, Shield } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, Settings, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles } from 'lucide-react';
 
 const API_URL = '';
 
@@ -371,6 +371,25 @@ const ViewHeader = ({ title, subtitle, gradient, breadcrumbItems, icon: Icon, on
   </div>
 );
 
+// Componente de mensaje del chat
+const ChatMessage = ({ message, isUser }) => (
+  <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 animate-fadeIn`}>
+    <div className={`flex items-start gap-3 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`p-3 rounded-full ${isUser ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-purple-600 to-violet-700'} shadow-lg`}>
+        {isUser ? <User size={20} className="text-white" /> : <Bot size={20} className="text-white" />}
+      </div>
+      <div className={`px-6 py-4 rounded-2xl shadow-md ${
+        isUser 
+          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white' 
+          : 'bg-white text-slate-800 border border-slate-200'
+      }`}>
+        <p className="text-sm font-medium mb-1 opacity-80">{isUser ? 'Tú' : 'Asistente IA'}</p>
+        <p className="whitespace-pre-wrap leading-relaxed">{message}</p>
+      </div>
+    </div>
+  </div>
+);
+
 export default function App() {
   const [currentView, setCurrentView] = useState('login');
   const [token, setToken] = useState(null);
@@ -413,11 +432,22 @@ export default function App() {
   const [filtroLogs, setFiltroLogs] = useState({ tipo_operacion: '', documento: '' });
   const [logs, setLogs] = useState([]);
 
+  // Estados para el chat RAG
+  const [chatMessages, setChatMessages] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
   useEffect(() => {
     if (token && currentView === 'menu') {
       fetchStats();
     }
   }, [token, currentView]);
+
+  // Auto-scroll del chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
   const fetchStats = async () => {
     try {
@@ -516,7 +546,6 @@ export default function App() {
 
       if (response.ok) {
         showMessage('Email verificado correctamente. Ya puede iniciar sesión');
-        // Resetear estados de registro
         setRegistroEmail('');
         setRegistroPassword('');
         setRegistroNombre('');
@@ -589,6 +618,8 @@ export default function App() {
     });
     setPersonaConsultada(null);
     setNroDocConsulta('');
+    setChatMessages([]);
+    setCurrentQuestion('');
   };
 
   const validarFormCrear = () => {
@@ -824,6 +855,52 @@ export default function App() {
       setLogs([]);
     }
     setLoading(false);
+  };
+
+  // Nueva función para enviar pregunta al chat RAG
+  const handleSendQuestion = async () => {
+    if (!currentQuestion.trim()) {
+      showMessage('Por favor ingrese una pregunta', 'error');
+      return;
+    }
+
+    // Agregar la pregunta del usuario al chat
+    const userMessage = currentQuestion;
+    setChatMessages(prev => [...prev, { text: userMessage, isUser: true }]);
+    setCurrentQuestion('');
+    setChatLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/consulta-natural`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ pregunta: userMessage })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.respuesta) {
+        // Agregar la respuesta del asistente al chat
+        setChatMessages(prev => [...prev, { text: data.respuesta, isUser: false }]);
+      } else {
+        setChatMessages(prev => [...prev, { 
+          text: 'Lo siento, no pude procesar tu pregunta. Por favor intenta de nuevo.', 
+          isUser: false 
+        }]);
+        showMessage(data.detail || 'Error al procesar la pregunta', 'error');
+      }
+    } catch (error) {
+      setChatMessages(prev => [...prev, { 
+        text: 'Ocurrió un error de conexión. Por favor verifica tu red e intenta nuevamente.', 
+        isUser: false 
+      }]);
+      showMessage('Error de conexión: ' + error.message, 'error');
+    }
+
+    setChatLoading(false);
   };
 
   // VISTA DE LOGIN Y REGISTRO
@@ -1132,16 +1209,158 @@ export default function App() {
             </div>
 
             <div 
-              className="group bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-slate-500/20"
+              onClick={() => setCurrentView('chat')}
+              className="group bg-gradient-to-br from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-cyan-500/20"
               style={{ animationDelay: '500ms' }}
             >
               <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Settings size={32} />
+                <Sparkles size={32} />
               </div>
-              <span className="text-xl">Consultar rag</span>
-              <p className="text-slate-100 text-sm mt-2 opacity-90">Consultas lenguage natural</p>
+              <span className="text-xl">Consulta Inteligente</span>
+              <p className="text-cyan-100 text-sm mt-2 opacity-90">Chat con IA en lenguaje natural</p>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentView === 'chat') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <ViewHeader
+          title="Asistente Inteligente - Chat IA"
+          subtitle="Realiza consultas en lenguaje natural sobre los datos del sistema"
+          gradient="from-cyan-600 to-teal-700"
+          breadcrumbItems={['Menú Principal', 'Consulta Inteligente']}
+          icon={Sparkles}
+          onBack={() => {
+            setCurrentView('menu');
+            setChatMessages([]);
+            setCurrentQuestion('');
+          }}
+        />
+
+        <div className="max-w-6xl mx-auto p-8">
+          {message && <Alert message={message} type={messageType} />}
+          
+          <Card title="Chat con Asistente IA" icon={MessageCircle}>
+            <div className="bg-gradient-to-r from-cyan-50 to-teal-100 p-6 rounded-xl mb-6 border border-cyan-200">
+              <div className="flex items-start gap-4">
+                <div className="bg-gradient-to-r from-cyan-600 to-teal-700 p-3 rounded-xl">
+                  <Sparkles className="text-white" size={28} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">💡 ¿Cómo funciona?</h3>
+                  <p className="text-slate-700 text-sm leading-relaxed mb-3">
+                    Este asistente inteligente utiliza <strong>Google Gemini</strong> para responder preguntas sobre los datos del sistema en lenguaje natural.
+                  </p>
+                  <p className="text-slate-600 text-sm">
+                    <strong>Ejemplos de preguntas:</strong>
+                  </p>
+                  <ul className="text-slate-600 text-sm mt-2 space-y-1 ml-4">
+                    <li>• "¿Cuántas personas hay registradas?"</li>
+                    <li>• "Muéstrame información sobre Juan Pérez"</li>
+                    <li>• "¿Cuántos hombres y mujeres están registrados?"</li>
+                    <li>• "Dame un resumen de las personas del sistema"</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Área de mensajes del chat */}
+            <div className="bg-slate-50 rounded-xl p-6 mb-6 border border-slate-200" style={{ height: '500px', overflowY: 'auto' }}>
+              {chatMessages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <div className="bg-gradient-to-r from-cyan-600 to-teal-700 w-20 h-20 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+                    <Bot size={40} className="text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">¡Hola! Soy tu asistente inteligente</h3>
+                  <p className="text-slate-600 max-w-md">
+                    Puedes preguntarme cualquier cosa sobre los datos del sistema. Estoy aquí para ayudarte.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  {chatMessages.map((msg, idx) => (
+                    <ChatMessage key={idx} message={msg.text} isUser={msg.isUser} />
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start mb-4 animate-fadeIn">
+                      <div className="flex items-start gap-3">
+                        <div className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-violet-700 shadow-lg">
+                          <Bot size={20} className="text-white" />
+                        </div>
+                        <div className="px-6 py-4 rounded-2xl shadow-md bg-white text-slate-800 border border-slate-200">
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-600"></div>
+                            <span className="text-sm">Pensando...</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+              )}
+            </div>
+
+            {/* Input para nueva pregunta */}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Input
+                  label=""
+                  value={currentQuestion}
+                  onChange={(e) => setCurrentQuestion(e.target.value)}
+                  placeholder="Escribe tu pregunta aquí..."
+                  icon={MessageCircle}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !chatLoading) {
+                      handleSendQuestion();
+                    }
+                  }}
+                  disabled={chatLoading}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button 
+                  onClick={handleSendQuestion} 
+                  disabled={chatLoading || !currentQuestion.trim()} 
+                  className="px-8 h-12"
+                  variant="primary"
+                >
+                  {chatLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={20} />
+                      Enviar
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {chatMessages.length > 0 && (
+              <div className="mt-4">
+                <Button 
+                  onClick={() => {
+                    setChatMessages([]);
+                    setCurrentQuestion('');
+                  }} 
+                  variant="outline" 
+                  className="w-full"
+                  size="sm"
+                >
+                  <Trash2 size={16} />
+                  Limpiar Conversación
+                </Button>
+              </div>
+            )}
+          </Card>
         </div>
       </div>
     );
