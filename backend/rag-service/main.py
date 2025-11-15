@@ -78,7 +78,9 @@ async def consultar_rag(request: ConsultaRAGRequest,
         await _registrar_log(
             tipo_operacion="CONSULTAR_RAG",
             usuario_email=_extraer_email(credentials.credentials),
-            descripcion=f"Pregunta: {request.pregunta}"
+            pregunta_rag=f"Pregunta: {request.pregunta}",
+            respuesta_rag=respuesta
+
         )
         
         logger.info(f"Consulta RAG procesada exitosamente")
@@ -126,17 +128,18 @@ async def info():
 
 # ========== FUNCIONES AUXILIARES ==========
 
-async def _registrar_log(tipo_operacion: str, usuario_email: str, descripcion: str):
+async def _registrar_log(tipo_operacion: str, usuario_email: str, pregunta_rag: str, respuesta_rag: str):
     """Registra operación en servicio de logs"""
     try:
         async with httpx.AsyncClient(timeout=config.SERVICE_TIMEOUT) as client:
             await client.post(
-                f"{config.LOGS_SERVICE_URL}/registrar",
+                f"{config.LOGS_URL}/registrar",
                 json={
                     "tipo_operacion": tipo_operacion,
                     "usuario_email": usuario_email,
                     "documento": "RAG",
-                    "descripcion": descripcion
+                    "pregunta_rag": pregunta_rag,
+                    "respuesta_rag": respuesta_rag
                 }
             )
     except Exception as e:

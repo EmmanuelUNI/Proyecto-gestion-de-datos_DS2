@@ -29,7 +29,7 @@ async def _registrar_log(tipo, email, doc, desc, token):
         headers = {"Authorization": f"Bearer {token}"}
         async with httpx.AsyncClient(timeout=config.SERVICE_TIMEOUT) as client:
             await client.post(
-                f"{config.LOGS_SERVICE_URL}/registrar",
+                f"{config.LOGS_URL}/registrar",
                 json={
                     "tipo_operacion": tipo,
                     "usuario_email": email,
