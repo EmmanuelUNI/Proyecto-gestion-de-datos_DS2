@@ -1,10 +1,319 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles, Eye, EyeOff, Menu, XCircle, ArrowRight, Zap, TrendingUp, Globe, Server, Cloud, Filter } from 'lucide-react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles, Eye, EyeOff, Menu, XCircle, ArrowRight, Zap, TrendingUp, Globe, Server, Cloud, Filter, ChevronDown, ChevronUp  } from 'lucide-react';
 
 const API_URL = '';
 
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f8fafc'/%3E%3Cpath d='M100 85c-13.8 0-25 11.2-25 25s11.2 25 25 25 25-11.2 25-25-11.2-25-25-25zm0 40c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15z' fill='%23cbd5e1'/%3E%3Cpath d='M140 150c0-22.1-17.9-40-40-40s-40 17.9-40 40v10h80v-10z' fill='%23cbd5e1'/%3E%3C/svg%3E";
+// NUEVO COMPONENTE - Agregar después de PLACEHOLDER_IMAGE y antes de validaciones
+const LogDetailRow = ({ log }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('es-CO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const renderDataChanges = () => {
+    if (log.tipo_operacion === 'MODIFICAR' && log.datos_anteriores && log.datos_nuevos) {
+      const anterior = typeof log.datos_anteriores === 'string' 
+        ? JSON.parse(log.datos_anteriores) 
+        : log.datos_anteriores;
+      const nuevo = typeof log.datos_nuevos === 'string' 
+        ? JSON.parse(log.datos_nuevos) 
+        : log.datos_nuevos;
+
+      const cambios = [];
+      const todosLosCampos = new Set([...Object.keys(anterior || {}), ...Object.keys(nuevo || {})]);
+
+      todosLosCampos.forEach(campo => {
+        if (anterior?.[campo] !== nuevo?.[campo]) {
+          cambios.push({
+            campo,
+            anterior: anterior?.[campo],
+            nuevo: nuevo?.[campo]
+          });
+        }
+      });
+
+      return (
+        <div className="mt-4 space-y-3">
+          <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+            <Edit2 size={16} className="text-amber-600" />
+            Cambios Realizados:
+          </h4>
+          {cambios.length > 0 ? (
+            cambios.map((cambio, idx) => (
+              <div key={idx} className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded">
+                <p className="font-semibold text-amber-800 mb-2 capitalize">
+                  {cambio.campo.replace(/_/g, ' ')}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-slate-600 font-medium mb-1">Valor Anterior:</p>
+                    <p className="text-slate-800 bg-white p-2 rounded border border-slate-200 break-all">
+                      {cambio.anterior || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-emerald-600 font-medium mb-1">Valor Nuevo:</p>
+                    <p className="text-slate-800 bg-emerald-50 p-2 rounded border border-emerald-200 font-semibold break-all">
+                      {cambio.nuevo || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-slate-500 italic">No se detectaron cambios</p>
+          )}
+        </div>
+      );
+    }
+
+    if (log.tipo_operacion === 'CREAR' && log.datos_nuevos) {
+      const datos = typeof log.datos_nuevos === 'string' 
+        ? JSON.parse(log.datos_nuevos) 
+        : log.datos_nuevos;
+
+      return (
+        <div className="mt-4 space-y-3">
+          <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+            <Plus size={16} className="text-emerald-600" />
+            Datos de la Persona Creada:
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Object.entries(datos || {}).map(([key, value]) => (
+              <div key={key} className="bg-emerald-50 p-3 rounded border border-emerald-200">
+                <p className="text-xs text-emerald-700 font-medium mb-1 capitalize">
+                  {key.replace(/_/g, ' ')}
+                </p>
+                <p className="text-slate-800 font-semibold break-all">
+                  {key === 'foto' ? '(Imagen Base64)' : value || 'N/A'}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (log.tipo_operacion === 'ELIMINAR' && log.datos_anteriores) {
+      const datos = typeof log.datos_anteriores === 'string' 
+        ? JSON.parse(log.datos_anteriores) 
+        : log.datos_anteriores;
+
+      return (
+        <div className="mt-4 space-y-3">
+          <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+            <Trash2 size={16} className="text-rose-600" />
+            Datos de la Persona Eliminada:
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Object.entries(datos || {}).map(([key, value]) => (
+              <div key={key} className="bg-rose-50 p-3 rounded border border-rose-200">
+                <p className="text-xs text-rose-700 font-medium mb-1 capitalize">
+                  {key.replace(/_/g, ' ')}
+                </p>
+                <p className="text-slate-800 font-semibold break-all">
+                  {key === 'foto' ? '(Imagen Base64)' : value || 'N/A'}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (log.tipo_operacion === 'CONSULTAR_RAG') {
+      return (
+        <div className="mt-4 space-y-3">
+          <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+            <Sparkles size={16} className="text-cyan-600" />
+            Consulta Inteligente (IA):
+          </h4>
+          <div className="space-y-3">
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+              <p className="text-xs text-blue-700 font-medium mb-2">Pregunta del Usuario:</p>
+              <p className="text-slate-800 italic">"{log.pregunta_rag || 'N/A'}"</p>
+            </div>
+            <div className="bg-purple-50 border-l-4 border-purple-400 p-3 rounded">
+              <p className="text-xs text-purple-700 font-medium mb-2">Respuesta del Asistente IA:</p>
+              <p className="text-slate-800">{log.respuesta_rag || 'N/A'}</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (log.tipo_operacion === 'CONSULTAR' && log.datos_nuevos) {
+      const datos = typeof log.datos_nuevos === 'string' 
+        ? JSON.parse(log.datos_nuevos) 
+        : log.datos_nuevos;
+
+      return (
+        <div className="mt-4 space-y-3">
+          <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+            <Search size={16} className="text-blue-600" />
+            Datos Consultados:
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Object.entries(datos || {}).map(([key, value]) => (
+              <div key={key} className="bg-blue-50 p-3 rounded border border-blue-200">
+                <p className="text-xs text-blue-700 font-medium mb-1 capitalize">
+                  {key.replace(/_/g, ' ')}
+                </p>
+                <p className="text-slate-800 font-semibold break-all">
+                  {key === 'foto' ? '(Imagen Base64)' : value || 'N/A'}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const getOperationIcon = () => {
+    switch (log.tipo_operacion) {
+      case 'CREAR': return <Plus size={16} />;
+      case 'MODIFICAR': return <Edit2 size={16} />;
+      case 'ELIMINAR': return <Trash2 size={16} />;
+      case 'CONSULTAR_RAG': return <Sparkles size={16} />;
+      default: return <Search size={16} />;
+    }
+  };
+
+  const getOperationColor = () => {
+    switch (log.tipo_operacion) {
+      case 'CREAR': return 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200';
+      case 'MODIFICAR': return 'bg-amber-100 text-amber-800 hover:bg-amber-200';
+      case 'ELIMINAR': return 'bg-rose-100 text-rose-800 hover:bg-rose-200';
+      case 'CONSULTAR_RAG': return 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200';
+      default: return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+    }
+  };
+
+  return (
+    <>
+      <tr className="border-b border-slate-200 hover:bg-purple-50 transition-all duration-300 cursor-pointer">
+        <td className="p-4">
+          <span className={`px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center gap-2 transition-all duration-300 hover:scale-105 ${getOperationColor()}`}>
+            {getOperationIcon()}
+            {log.tipo_operacion}
+          </span>
+        </td>
+        <td className="p-4">
+          <div className="flex items-center gap-2 text-slate-700">
+            <User size={16} className="text-slate-500" />
+            <span className="font-semibold">{log.usuario_email}</span>
+          </div>
+        </td>
+        <td className="p-4">
+          <div className="flex items-center gap-2">
+            <CreditCard size={16} className="text-slate-500" />
+            <span className="font-mono text-slate-800 font-semibold">
+              {log.documento_afectado || 'N/A'}
+            </span>
+          </div>
+        </td>
+        <td className="p-4">
+          <div className="flex items-center gap-2 text-slate-600">
+            <Calendar size={16} className="text-slate-500" />
+            <span className="text-sm">{formatDate(log.fecha_transaccion)}</span>
+          </div>
+        </td>
+        <td className="p-4 text-center">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-300 flex items-center gap-2 mx-auto font-semibold shadow-md hover:shadow-lg"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp size={18} />
+                Ocultar
+              </>
+            ) : (
+              <>
+                <ChevronDown size={18} />
+                Ver Detalles
+              </>
+            )}
+          </button>
+        </td>
+      </tr>
+      {isExpanded && (
+        <tr className="bg-slate-50 border-b border-slate-200 animate-fadeIn">
+          <td colSpan={5} className="p-6">
+            <div className="bg-white rounded-xl shadow-md p-6 border-2 border-purple-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <FileText className="text-purple-600" size={24} />
+                  Detalles Completos de la Operación
+                </h3>
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <p className="text-sm text-purple-700 font-medium mb-1">Usuario:</p>
+                  <p className="text-slate-800 font-semibold flex items-center gap-2">
+                    <User size={18} className="text-purple-600" />
+                    {log.usuario_email}
+                  </p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <p className="text-sm text-purple-700 font-medium mb-1">Fecha y Hora:</p>
+                  <p className="text-slate-800 font-semibold flex items-center gap-2">
+                    <Calendar size={18} className="text-purple-600" />
+                    {formatDate(log.fecha_transaccion)}
+                  </p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <p className="text-sm text-purple-700 font-medium mb-1">Tipo de Operación:</p>
+                  <p className="text-slate-800 font-semibold flex items-center gap-2">
+                    {getOperationIcon()}
+                    {log.tipo_operacion}
+                  </p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <p className="text-sm text-purple-700 font-medium mb-1">Documento Afectado:</p>
+                  <p className="text-slate-800 font-semibold flex items-center gap-2">
+                    <CreditCard size={18} className="text-purple-600" />
+                    {log.documento_afectado || 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              {renderDataChanges()}
+
+              {!log.datos_anteriores && !log.datos_nuevos && !log.pregunta_rag && log.tipo_operacion !== 'CONSULTAR_RAG' && (
+                <div className="mt-4 bg-slate-100 p-4 rounded-lg border border-slate-300 text-center">
+                  <AlertCircle className="inline-block text-slate-500 mb-2" size={32} />
+                  <p className="text-slate-600">No hay información adicional disponible para esta operación</p>
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+};
 const validaciones = {
   email: (value) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2428,37 +2737,26 @@ export default function App() {
 
           {logsFiltrados.length > 0 ? (
             <Card title={`Registros Encontrados: ${logsFiltrados.length} operaciones`} icon={FileText}>
+              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-lg mb-4">
+                <p className="text-purple-800 font-semibold flex items-center gap-2">
+                  <AlertCircle size={20} />
+                  Haz clic en "Ver Detalles" para expandir la información completa de cada operación
+                </p>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-purple-600 text-white">
                     <tr>
-                      <th className="p-4 text-left font-bold rounded-tl-xl">Operación</th>
+                      <th className="p-4 text-left font-bold">Operación</th>
                       <th className="p-4 text-left font-bold">Usuario</th>
                       <th className="p-4 text-left font-bold">Documento</th>
-                      <th className="p-4 text-left font-bold rounded-tr-xl">Fecha</th>
+                      <th className="p-4 text-left font-bold">Fecha</th>
+                      <th className="p-4 text-center font-bold">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {logsFiltrados.map((log, idx) => (
-                      <tr key={idx} className="border-b border-slate-200 hover:bg-purple-50 transition-colors duration-300 animate-fadeIn" style={{ animationDelay: `${idx * 50}ms` }}>
-                        <td className="p-4">
-                          <span className={`px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
-                            log.tipo_operacion === 'CREAR' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-                            log.tipo_operacion === 'MODIFICAR' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' :
-                            log.tipo_operacion === 'ELIMINAR' ? 'bg-rose-100 text-rose-800 hover:bg-rose-200' :
-                            'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                          }`}>
-                            {log.tipo_operacion === 'CREAR' && <Plus size={16} />}
-                            {log.tipo_operacion === 'MODIFICAR' && <Edit2 size={16} />}
-                            {log.tipo_operacion === 'ELIMINAR' && <Trash2 size={16} />}
-                            {(log.tipo_operacion === 'CONSULTAR' || log.tipo_operacion === 'CONSULTAR_RAG') && <Search size={16} />}
-                            {log.tipo_operacion}
-                          </span>
-                        </td>
-                        <td className="p-4 font-semibold text-slate-700">{log.usuario_email}</td>
-                        <td className="p-4 font-mono text-slate-800">{log.documento_afectado || 'N/A'}</td>
-                        <td className="p-4 text-slate-600">{new Date(log.fecha_transaccion).toLocaleString('es-CO')}</td>
-                      </tr>
+                      <LogDetailRow key={idx} log={log} />
                     ))}
                   </tbody>
                 </table>
@@ -2474,6 +2772,31 @@ export default function App() {
               </div>
             </Card>
           )}
+
+          <Card title="Leyenda de Operaciones" icon={FileText}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="flex items-center gap-3 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                <Plus size={20} className="text-emerald-600" />
+                <span className="font-semibold text-emerald-800">Crear</span>
+              </div>
+              <div className="flex items-center gap-3 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                <Edit2 size={20} className="text-amber-600" />
+                <span className="font-semibold text-amber-800">Modificar</span>
+              </div>
+              <div className="flex items-center gap-3 bg-rose-50 p-3 rounded-lg border border-rose-200">
+                <Trash2 size={20} className="text-rose-600" />
+                <span className="font-semibold text-rose-800">Eliminar</span>
+              </div>
+              <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <Search size={20} className="text-blue-600" />
+                <span className="font-semibold text-blue-800">Consultar</span>
+              </div>
+              <div className="flex items-center gap-3 bg-cyan-50 p-3 rounded-lg border border-cyan-200">
+                <Sparkles size={20} className="text-cyan-600" />
+                <span className="font-semibold text-cyan-800">Consulta IA</span>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
     );
