@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, Settings, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles, Eye, EyeOff, Menu, XCircle, ArrowRight, Zap, TrendingUp, Globe, Server, Cloud } from 'lucide-react';
 
 const API_URL = '';
 
-// Imagen placeholder SVG en Base64
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f8fafc'/%3E%3Cpath d='M100 85c-13.8 0-25 11.2-25 25s11.2 25 25 25 25-11.2 25-25-11.2-25-25-25zm0 40c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15z' fill='%23cbd5e1'/%3E%3Cpath d='M140 150c0-22.1-17.9-40-40-40s-40 17.9-40 40v10h80v-10z' fill='%23cbd5e1'/%3E%3C/svg%3E";
 
 const validaciones = {
@@ -77,45 +76,29 @@ const validaciones = {
   }
 };
 
-// Función para formatear texto con Markdown
 const formatMessageWithMarkdown = (text) => {
   if (!text) return null;
 
-  // Procesar encabezados
   text = text.replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold mb-4 text-slate-800">$1</h1>');
   text = text.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold mb-3 text-slate-800">$1</h2>');
   text = text.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold mb-2 text-slate-800">$1</h3>');
-
-  // Procesar negritas
   text = text.replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-slate-800">$1</strong>');
-
-  // Procesar listas ordenadas
   text = text.replace(/^\d+\.\s+(.*$)/gim, '<li class="ml-4 mb-2 text-slate-700">$1</li>');
-  
-  // Procesar listas con asteriscos
   text = text.replace(/^\*\s+(.*$)/gim, '<li class="ml-4 mb-2 text-slate-700">$1</li>');
-
-  // Agrupar listas ordenadas
   text = text.replace(/(<li class="ml-4 mb-2 text-slate-700">.*<\/li>)+/gim, (match) => {
     return `<ol class="list-decimal ml-6 mb-4 space-y-2">${match}</ol>`;
   });
-
-  // Agrupar listas con asteriscos
   text = text.replace(/(<li class="ml-4 mb-2 text-slate-700">.*<\/li>)+/gim, (match) => {
     return `<ul class="list-disc ml-6 mb-4 space-y-2">${match}</ul>`;
   });
-
-  // Procesar saltos de línea
   text = text.replace(/\n/g, '<br>');
-
-  // Procesar texto normal
   text = text.replace(/^(?!<[hou])(.*$)/gim, '<p class="mb-3 text-slate-700 leading-relaxed">$1</p>');
 
   return <div dangerouslySetInnerHTML={{ __html: text }} />;
 };
 
 const Button = ({ onClick, children, variant = 'primary', disabled = false, className = '', size = 'md', ...props }) => {
-  const baseStyle = 'rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95 shadow-lg hover:shadow-xl border border-transparent';
+  const baseStyle = 'rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 border-2';
   
   const sizes = {
     sm: 'px-4 py-2 text-sm',
@@ -124,12 +107,14 @@ const Button = ({ onClick, children, variant = 'primary', disabled = false, clas
   };
   
   const variants = {
-    primary: 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white hover:from-blue-700 hover:to-indigo-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-blue-500/20',
-    danger: 'bg-gradient-to-r from-rose-600 to-red-700 text-white hover:from-rose-700 hover:to-red-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-rose-500/20',
-    secondary: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white hover:from-slate-700 hover:to-slate-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-slate-500/20',
-    success: 'bg-gradient-to-r from-emerald-600 to-green-700 text-white hover:from-emerald-700 hover:to-green-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-emerald-500/20',
-    warning: 'bg-gradient-to-r from-amber-600 to-orange-700 text-white hover:from-amber-700 hover:to-orange-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed border-amber-500/20',
-    outline: 'bg-white text-slate-700 border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200'
+    primary: 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:border-blue-700 disabled:bg-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg',
+    danger: 'bg-rose-600 text-white border-rose-600 hover:bg-rose-700 hover:border-rose-700 disabled:bg-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg',
+    secondary: 'bg-slate-600 text-white border-slate-600 hover:bg-slate-700 hover:border-slate-700 disabled:bg-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg',
+    success: 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 disabled:bg-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg',
+    warning: 'bg-amber-600 text-white border-amber-600 hover:bg-amber-700 hover:border-amber-700 disabled:bg-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg',
+    outline: 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 shadow-sm hover:shadow-md',
+    white: 'bg-white text-slate-900 border-white hover:bg-slate-100 hover:border-slate-100 shadow-md hover:shadow-lg',
+    dark: 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800 hover:border-slate-800 disabled:bg-slate-600 disabled:border-slate-600 disabled:cursor-not-allowed shadow-md hover:shadow-lg'
   };
   
   return (
@@ -143,17 +128,16 @@ const Button = ({ onClick, children, variant = 'primary', disabled = false, clas
     </button>
   );
 };
-
 const Card = ({ title, children, className = '', variant = 'default', icon: Icon }) => (
-  <div className={`bg-white rounded-2xl shadow-lg p-8 mb-6 transform transition-all duration-300 hover:shadow-xl border border-slate-100 animate-fadeIn ${className}`}>
+  <div className={`bg-white rounded-2xl shadow-md p-6 sm:p-8 mb-6 transform transition-all duration-300 hover:shadow-lg border border-slate-100 animate-fadeIn ${className}`}>
     {title && (
       <div className="flex items-center gap-3 mb-6">
         {Icon && (
-          <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md">
+          <div className="p-2 rounded-lg bg-blue-600 text-white shadow-sm transition-all duration-300 hover:bg-blue-700">
             <Icon size={20} />
           </div>
         )}
-        <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">{title}</h2>
       </div>
     )}
     {children}
@@ -177,7 +161,7 @@ const Input = ({ label, type = 'text', value, onChange, error, required = false,
         onChange={onChange}
         placeholder={placeholder}
         maxLength={maxLength}
-        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
           error 
             ? 'border-rose-500 focus:ring-rose-500 bg-rose-50' 
             : 'border-slate-300 focus:ring-blue-600 focus:border-blue-600 bg-slate-50 hover:bg-white'
@@ -199,7 +183,6 @@ const Input = ({ label, type = 'text', value, onChange, error, required = false,
   </div>
 );
 
-// Nuevo componente PasswordInput con validación visual mejorada
 const PasswordInput = ({ label, value, onChange, error, required = false, placeholder = '', showPasswordRequirements = false }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState(false);
@@ -235,7 +218,7 @@ const PasswordInput = ({ label, value, onChange, error, required = false, placeh
             if (!touched) setTouched(true);
           }}
           placeholder={placeholder}
-          className={`w-full pl-12 pr-12 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+          className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
             error 
               ? 'border-rose-500 focus:ring-rose-500 bg-rose-50' 
               : touched && !allValid
@@ -253,27 +236,27 @@ const PasswordInput = ({ label, value, onChange, error, required = false, placeh
       </div>
       
       {showPasswordRequirements && (
-        <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+        <div className="mt-3 p-4 bg-slate-50 rounded-xl border-2 border-slate-200 transition-all duration-300 hover:bg-slate-100">
           <p className="text-sm font-semibold text-slate-700 mb-2">Requisitos de contraseña:</p>
           <div className="space-y-1 text-xs">
-            <div className={`flex items-center gap-2 ${requirements.length ? 'text-emerald-600' : 'text-slate-500'}`}>
-              <div className={`w-2 h-2 rounded-full ${requirements.length ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+            <div className={`flex items-center gap-2 transition-colors duration-300 ${requirements.length ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${requirements.length ? 'bg-emerald-500' : 'bg-slate-400'}`} />
               Al menos 8 caracteres
             </div>
-            <div className={`flex items-center gap-2 ${requirements.uppercase ? 'text-emerald-600' : 'text-slate-500'}`}>
-              <div className={`w-2 h-2 rounded-full ${requirements.uppercase ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+            <div className={`flex items-center gap-2 transition-colors duration-300 ${requirements.uppercase ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${requirements.uppercase ? 'bg-emerald-500' : 'bg-slate-400'}`} />
               Una letra mayúscula (A-Z)
             </div>
-            <div className={`flex items-center gap-2 ${requirements.lowercase ? 'text-emerald-600' : 'text-slate-500'}`}>
-              <div className={`w-2 h-2 rounded-full ${requirements.lowercase ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+            <div className={`flex items-center gap-2 transition-colors duration-300 ${requirements.lowercase ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${requirements.lowercase ? 'bg-emerald-500' : 'bg-slate-400'}`} />
               Una letra minúscula (a-z)
             </div>
-            <div className={`flex items-center gap-2 ${requirements.number ? 'text-emerald-600' : 'text-slate-500'}`}>
-              <div className={`w-2 h-2 rounded-full ${requirements.number ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+            <div className={`flex items-center gap-2 transition-colors duration-300 ${requirements.number ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${requirements.number ? 'bg-emerald-500' : 'bg-slate-400'}`} />
               Un número (0-9)
             </div>
-            <div className={`flex items-center gap-2 ${requirements.symbol ? 'text-emerald-600' : 'text-slate-500'}`}>
-              <div className={`w-2 h-2 rounded-full ${requirements.symbol ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+            <div className={`flex items-center gap-2 transition-colors duration-300 ${requirements.symbol ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${requirements.symbol ? 'bg-emerald-500' : 'bg-slate-400'}`} />
               Un símbolo (! @ # $ _ - .)
             </div>
           </div>
@@ -304,7 +287,7 @@ const Select = ({ label, value, onChange, options, error, required = false, icon
       <select
         value={value}
         onChange={onChange}
-        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 appearance-none bg-slate-50 hover:bg-white ${
+        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 appearance-none bg-slate-50 hover:bg-white ${
           error 
             ? 'border-rose-500 focus:ring-rose-500' 
             : 'border-slate-300 focus:ring-blue-600 focus:border-blue-600'
@@ -399,7 +382,7 @@ const ImageUpload = ({ label, value, onChange, error, required = false }) => {
             id="file-upload"
           />
           <label htmlFor="file-upload" className="cursor-pointer">
-            <Upload className={`mx-auto mb-4 ${error ? 'text-rose-500' : 'text-slate-400'} transition-colors duration-300`} size={48} />
+            <Upload className={`mx-auto mb-4 transition-colors duration-300 ${error ? 'text-rose-500' : 'text-slate-400'}`} size={48} />
             <p className="text-slate-600 font-semibold mb-2">
               Haga clic para seleccionar o arrastre una imagen
             </p>
@@ -407,12 +390,12 @@ const ImageUpload = ({ label, value, onChange, error, required = false }) => {
           </label>
         </div>
       ) : (
-        <div className="relative border-2 border-slate-200 rounded-xl p-4 bg-slate-50 transition-all duration-300">
-          <img src={preview} alt="Vista previa" className="w-full h-64 object-contain rounded-lg mb-4" />
+        <div className="relative border-2 border-slate-200 rounded-xl p-4 bg-slate-50 transition-all duration-300 hover:bg-slate-100">
+          <img src={preview} alt="Vista previa" className="w-full h-64 object-contain rounded-lg mb-4 transition-all duration-300 hover:scale-105" />
           <button
             type="button"
             onClick={handleClear}
-            className="absolute top-4 right-4 bg-rose-500 text-white p-2 rounded-full hover:bg-rose-600 transition-colors shadow-lg transform hover:scale-110"
+            className="absolute top-4 right-4 bg-rose-600 text-white p-2 rounded-full hover:bg-rose-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-110"
           >
             <X size={20} />
           </button>
@@ -434,10 +417,10 @@ const Alert = ({ message, type }) => {
   if (!message) return null;
   const isError = type === 'error';
   return (
-    <div className={`p-4 rounded-xl flex items-center gap-3 animate-slideDown shadow-lg border-l-4 ${
+    <div className={`p-4 rounded-xl flex items-center gap-3 animate-slideDown shadow-md border-l-4 transition-all duration-300 ${
       isError 
-        ? 'bg-rose-50 text-rose-700 border-rose-500' 
-        : 'bg-emerald-50 text-emerald-700 border-emerald-500'
+        ? 'bg-rose-50 text-rose-700 border-rose-500 hover:bg-rose-100' 
+        : 'bg-emerald-50 text-emerald-700 border-emerald-500 hover:bg-emerald-100'
     }`}>
       {isError ? <AlertCircle size={24} /> : <CheckCircle size={24} />}
       <span className="font-semibold">{message}</span>
@@ -447,7 +430,7 @@ const Alert = ({ message, type }) => {
 
 const StatCard = ({ title, value, icon: Icon, color, delay = 0 }) => (
   <div 
-    className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 animate-slideUp group cursor-pointer"
+    className="bg-white rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 border-l-4 animate-slideUp group cursor-pointer"
     style={{ 
       borderColor: color,
       animationDelay: `${delay}ms`
@@ -455,17 +438,16 @@ const StatCard = ({ title, value, icon: Icon, color, delay = 0 }) => (
   >
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-slate-600 text-sm font-medium mb-2">{title}</p>
-        <p className="text-3xl font-bold text-slate-800">{value}</p>
+        <p className="text-slate-600 text-xs sm:text-sm font-medium mb-2">{title}</p>
+        <p className="text-2xl sm:text-3xl font-bold text-slate-800">{value}</p>
       </div>
-      <div className="p-4 rounded-xl transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: color + '20' }}>
-        <Icon size={32} style={{ color }} />
+      <div className="p-3 sm:p-4 rounded-xl transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: color + '20' }}>
+        <Icon size={28} style={{ color }} className="sm:w-8 sm:h-8" />
       </div>
     </div>
   </div>
 );
 
-// Breadcrumb modificado - texto blanco sin efectos hover
 const Breadcrumb = ({ items }) => (
   <nav className="flex items-center space-x-2 text-sm text-white mb-6">
     {items.map((item, index) => (
@@ -480,24 +462,24 @@ const Breadcrumb = ({ items }) => (
 );
 
 const ViewHeader = ({ title, subtitle, gradient, breadcrumbItems, icon: Icon, onBack }) => (
-  <div className={`bg-gradient-to-r ${gradient} text-white p-6 shadow-xl`}>
+  <div className={`bg-gradient-to-r ${gradient} text-white p-4 sm:p-6 shadow-md`}>
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="w-full sm:w-auto">
           <Breadcrumb items={breadcrumbItems} />
           <div className="flex items-center gap-4">
-            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
-              <Icon size={32} />
+            <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-xl transition-all duration-300 hover:bg-white/30">
+              <Icon size={28} className="sm:w-8 sm:h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">{title}</h1>
-              <p className="text-white/80 mt-2">{subtitle}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold">{title}</h1>
+              <p className="text-white/80 mt-2 text-sm sm:text-base">{subtitle}</p>
             </div>
           </div>
         </div>
         {onBack && (
-          <Button onClick={onBack} variant="outline" size="md">
-            ← Volver al Menú
+          <Button onClick={onBack} variant="outline" size="md" className="w-full sm:w-auto">
+            ← Volver
           </Button>
         )}
       </div>
@@ -505,20 +487,21 @@ const ViewHeader = ({ title, subtitle, gradient, breadcrumbItems, icon: Icon, on
   </div>
 );
 
-// Componente de mensaje del chat actualizado con Markdown
 const ChatMessage = ({ message, isUser }) => (
   <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 animate-fadeIn`}>
     <div className={`flex items-start gap-3 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-      <div className={`p-3 rounded-full ${isUser ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-purple-600 to-violet-700'} shadow-lg`}>
+      <div className={`p-3 rounded-full transition-all duration-300 hover:scale-110 ${
+        isUser ? 'bg-blue-600' : 'bg-purple-600'
+      } shadow-md hover:shadow-lg`}>
         {isUser ? <User size={20} className="text-white" /> : <Bot size={20} className="text-white" />}
       </div>
-      <div className={`px-6 py-4 rounded-2xl shadow-md ${
+      <div className={`px-4 sm:px-6 py-4 rounded-2xl shadow-md transition-all duration-300 hover:shadow-lg ${
         isUser 
-          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white' 
-          : 'bg-white text-slate-800 border border-slate-200'
+          ? 'bg-blue-600 text-white' 
+          : 'bg-white text-slate-800 border-2 border-slate-200 hover:bg-slate-50'
       }`}>
         <p className="text-sm font-medium mb-1 opacity-80">{isUser ? 'Tú' : 'Asistente IA'}</p>
-        <div className="whitespace-pre-wrap leading-relaxed">
+        <div className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
           {isUser ? message : formatMessageWithMarkdown(message)}
         </div>
       </div>
@@ -526,8 +509,260 @@ const ChatMessage = ({ message, isUser }) => (
   </div>
 );
 
+const LandingPage = ({ onNavigateToLogin, onNavigateToSignup }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const features = [
+    {
+      icon: Shield,
+      title: "Seguridad Integral",
+      description: "Autenticación mediante servicios institucionales, validación de datos y registro completo de operaciones.",
+      color: "#3B82F6"
+    },
+    {
+      icon: Zap,
+      title: "Arquitectura Eficiente",
+      description: "Backend modular desarrollado con FastAPI y un frontend React rápido y optimizado.",
+      color: "#F59E0B"
+    },
+    {
+      icon: Cloud,
+      title: "Conectado a la Nube",
+      description: "Base de datos institucional ROBLE y despliegue en Microsoft Azure para operación continua.",
+      color: "#10B981"
+    },
+    {
+      icon: Bot,
+      title: "IA Inteligente",
+      description: "Consultas en lenguaje natural impulsadas por Google Gemini.",
+      color: "#8B5CF6"
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-violet-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <nav className="relative z-50 bg-white/5 backdrop-blur-lg border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
+            <div className="flex items-center gap-3 animate-slideUp">
+              <div className="bg-blue-600 p-2 sm:p-3 rounded-xl shadow-md transition-all duration-300 hover:bg-blue-700">
+                <Database size={24} className="sm:w-7 sm:h-7" />
+              </div>
+              <span className="text-xl sm:text-2xl font-bold">CaribeX Cloud</span>
+            </div>
+
+            <div className="hidden md:flex items-center gap-6">
+              <a href="#inicio" className="hover:text-blue-300 transition-colors duration-300 font-medium">Inicio</a>
+              <a href="#caracteristicas" className="hover:text-blue-300 transition-colors duration-300 font-medium">Características</a>
+              <a href="#nosotros" className="hover:text-blue-300 transition-colors duration-300 font-medium">Nosotros</a>
+            </div>
+
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+            >
+              {mobileMenuOpen ? <XCircle size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white/5 backdrop-blur-lg border-t border-white/10 animate-slideDown">
+            <div className="px-4 py-4 space-y-3">
+              <a href="#inicio" className="block py-2 hover:text-blue-300 transition-colors duration-300 font-medium">Inicio</a>
+              <a href="#caracteristicas" className="block py-2 hover:text-blue-300 transition-colors duration-300 font-medium">Características</a>
+              <a href="#nosotros" className="block py-2 hover:text-blue-300 transition-colors duration-300 font-medium">Nosotros</a>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      <section id="inicio" className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16 sm:pb-20">
+        <div className="text-center animate-fadeIn">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            Gestión de Datos
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              Inteligente y Segura
+            </span>
+          </h1>
+          <p className="text-lg sm:text-xl md:text-2xl text-blue-100 mb-8 sm:mb-12 max-w-3xl mx-auto px-4">
+            Plataforma moderna en la nube para administrar información personal con IA integrada
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
+            <Button onClick={onNavigateToSignup} size="lg" variant="white" className="w-full sm:w-auto">
+              Comenzar Gratis
+              <ArrowRight size={20} />
+            </Button>
+            <Button onClick={onNavigateToLogin} variant="dark" size="lg" className="w-full sm:w-auto">
+              Iniciar Sesión
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-16 sm:mt-20">
+            <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 sm:p-8 border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+              <div className="text-3xl sm:text-4xl font-bold mb-2">100%</div>
+              <div className="text-blue-200 text-sm sm:text-base">Cloud</div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 sm:p-8 border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+              <div className="text-3xl sm:text-4xl font-bold mb-2">24/7</div>
+              <div className="text-blue-200 text-sm sm:text-base">Acceso</div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 sm:p-8 border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+              <div className="text-3xl sm:text-4xl font-bold mb-2">100%</div>
+              <div className="text-blue-200 text-sm sm:text-base">Seguro</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caracteristicas" className="relative z-10 bg-white/5 backdrop-blur-lg py-16 sm:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 sm:mb-16 animate-fadeIn">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Características Principales</h2>
+            <p className="text-lg sm:text-xl text-blue-200 max-w-2xl mx-auto">
+              Todo lo que necesitas para gestionar información de forma profesional
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {features.map((feature, idx) => (
+              <div 
+                key={idx}
+                className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 sm:p-8 border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 animate-slideUp"
+                style={{ animationDelay: `${idx * 100}ms` }}
+              >
+                <div className="p-3 sm:p-4 rounded-xl mb-4 inline-block transition-all duration-300 hover:scale-110" style={{ backgroundColor: feature.color + '20' }}>
+                  <feature.icon size={28} style={{ color: feature.color }} className="sm:w-8 sm:h-8" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold mb-2">{feature.title}</h3>
+                <p className="text-sm sm:text-base text-blue-200">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="nosotros" className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+          <div className="animate-slideUp">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">Quiénes Somos</h2>
+            <p className="text-base sm:text-lg text-blue-100 mb-4 sm:mb-6 leading-relaxed">
+              Somos un equipo dedicado a crear soluciones modernas para la gestión de información en la nube.
+              Este proyecto integra una arquitectura basada en servicios independientes, una interfaz web optimizada y capacidades inteligentes para consultas de datos.
+            </p>
+            <p className="text-base sm:text-lg text-blue-100 mb-6 sm:mb-8 leading-relaxed">
+              Construido con <strong>React</strong>, <strong>FastAPI</strong> y potenciado por <strong>Google Gemini</strong>, 
+              desplegado en <strong>Microsoft Azure</strong> con base de datos institucional <strong>ROBLE</strong>.
+            </p>
+            <div className="flex flex-wrap gap-3 sm:gap-4">
+              <div className="bg-white/10 backdrop-blur-lg px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                <span className="font-semibold text-sm sm:text-base">React</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-lg px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                <span className="font-semibold text-sm sm:text-base">FastAPI</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-lg px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                <span className="font-semibold text-sm sm:text-base">Google Gemini</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-lg px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                <span className="font-semibold text-sm sm:text-base">Azure</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-lg px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                <span className="font-semibold text-sm sm:text-base">ROBLE DB</span>
+              </div>
+            </div>
+
+            
+          </div>
+
+          <div className="relative animate-slideUp" style={{ animationDelay: '200ms' }}>
+            <div className="bg-blue-600/20 backdrop-blur-lg rounded-3xl p-8 sm:p-12 border border-white/20 transition-all duration-300 hover:bg-blue-600/25">
+              <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                  <Server size={32} className="mx-auto mb-2 sm:mb-3 text-blue-400 sm:w-10 sm:h-10" />
+                  <div className="text-xl sm:text-2xl font-bold mb-1">API</div>
+                  <div className="text-xs sm:text-sm text-blue-200">Modular</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                  <Globe size={32} className="mx-auto mb-2 sm:mb-3 text-indigo-400 sm:w-10 sm:h-10" />
+                  <div className="text-xl sm:text-2xl font-bold mb-1">Web</div>
+                  <div className="text-xs sm:text-sm text-blue-200">Moderna</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                  <Database size={32} className="mx-auto mb-2 sm:mb-3 text-purple-400 sm:w-10 sm:h-10" />
+                  <div className="text-xl sm:text-2xl font-bold mb-1">Cloud</div>
+                  <div className="text-xs sm:text-sm text-blue-200">Escalable</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                  <Bot size={32} className="mx-auto mb-2 sm:mb-3 text-green-400 sm:w-10 sm:h-10" />
+                  <div className="text-xl sm:text-2xl font-bold mb-1">IA</div>
+                  <div className="text-xs sm:text-sm text-blue-200">Inteligente</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="relative z-10 bg-white/5 backdrop-blur-lg border-t border-white/10 py-8 sm:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-blue-600 p-2 rounded-xl transition-all duration-300 hover:bg-blue-700">
+                  <Database size={24} />
+                </div>
+                <span className="text-xl font-bold">CaribeX Cloud</span>
+              </div>
+              <p className="text-blue-200 text-sm">
+                Sistema de gestión en la nube con IA integrada
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Enlaces</h3>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#inicio" className="text-blue-200 hover:text-white transition-colors duration-300">Inicio</a></li>
+                <li><a href="#caracteristicas" className="text-blue-200 hover:text-white transition-colors duration-300">Características</a></li>
+                <li><a href="#nosotros" className="text-blue-200 hover:text-white transition-colors duration-300">Nosotros</a></li>
+                <li>
+                  <a 
+                    href="https://github.com/EmmanuelUNI/Proyecto-gestion-de-datos_DS2" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-200 hover:text-white transition-colors duration-300 flex items-center gap-2"
+                  >
+                    
+                    GitHub
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Contacto</h3>
+              <p className="text-blue-200 text-sm mb-2">Proyecto Final - Universidad del norte</p>
+              <p className="text-blue-200 text-sm">Diseño de Software II</p>
+            </div>
+          </div>
+          <div className="border-t border-white/10 pt-8 text-center">
+            <p className="text-blue-200 text-sm">
+              © 2025 CaribeX Cloud. Desarrollado con fines académicos.
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
 export default function App() {
-  const [currentView, setCurrentView] = useState('login');
+  const [currentView, setCurrentView] = useState('landing');
   const [token, setToken] = useState(null);
   const [userEmail, setUserEmail] = useState('');
   const [email, setEmail] = useState('');
@@ -537,7 +772,6 @@ export default function App() {
   const [messageType, setMessageType] = useState('');
   const [stats, setStats] = useState({ total: 0, created: 0, modified: 0, consulted: 0 });
 
-  // Estados para registro
   const [registroEmail, setRegistroEmail] = useState('');
   const [registroPassword, setRegistroPassword] = useState('');
   const [registroNombre, setRegistroNombre] = useState('');
@@ -568,7 +802,6 @@ export default function App() {
   const [filtroLogs, setFiltroLogs] = useState({ tipo_operacion: '', documento: '' });
   const [logs, setLogs] = useState([]);
 
-  // Estados para el chat RAG
   const [chatMessages, setChatMessages] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
@@ -580,7 +813,6 @@ export default function App() {
     }
   }, [token, currentView]);
 
-  // Auto-scroll del chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
@@ -725,7 +957,6 @@ export default function App() {
         setToken(data.access_token);
         setUserEmail(email);
         setCurrentView('menu');
-        // Eliminado: showMessage('Login exitoso');
       } else {
         showMessage(data.detail || 'Credenciales inválidas', 'error');
       }
@@ -739,7 +970,7 @@ export default function App() {
   const handleLogout = () => {
     setToken(null);
     setUserEmail('');
-    setCurrentView('login');
+    setCurrentView('landing');
     setFormCrear({
       primer_nombre: '',
       segundo_nombre: '',
@@ -993,14 +1224,12 @@ export default function App() {
     setLoading(false);
   };
 
-  // Nueva función para enviar pregunta al chat RAG
   const handleSendQuestion = async () => {
     if (!currentQuestion.trim()) {
       showMessage('Por favor ingrese una pregunta', 'error');
       return;
     }
 
-    // Agregar la pregunta del usuario al chat
     const userMessage = currentQuestion;
     setChatMessages(prev => [...prev, { text: userMessage, isUser: true }]);
     setCurrentQuestion('');
@@ -1019,7 +1248,6 @@ export default function App() {
       const data = await response.json();
 
       if (response.ok && data.respuesta) {
-        // Agregar la respuesta del asistente al chat
         setChatMessages(prev => [...prev, { text: data.respuesta, isUser: false }]);
       } else {
         setChatMessages(prev => [...prev, { 
@@ -1039,7 +1267,13 @@ export default function App() {
     setChatLoading(false);
   };
 
-  // VISTA DE LOGIN Y REGISTRO
+  if (currentView === 'landing') {
+    return <LandingPage 
+      onNavigateToLogin={() => setCurrentView('login')} 
+      onNavigateToSignup={() => setCurrentView('signup')}
+    />;
+  }
+
   if (!token) {
     if (currentView === 'signup' && !esperandoCodigo) {
       return (
@@ -1050,13 +1284,13 @@ export default function App() {
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-violet-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
           </div>
 
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-md p-6 sm:p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
             <div className="text-center mb-8">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
-                <UserPlus size={40} className="text-white" />
+              <div className="bg-blue-600 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md transition-all duration-300 hover:bg-blue-700">
+                <UserPlus size={32} className="text-white sm:w-10 sm:h-10" />
               </div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">Crear Cuenta</h1>
-              <p className="text-slate-600 font-medium">Regístrese en el sistema</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Crear Cuenta</h1>
+              <p className="text-slate-600 font-medium text-sm sm:text-base">Regístrese en el sistema</p>
             </div>
 
             <div className="space-y-5">
@@ -1090,7 +1324,7 @@ export default function App() {
                 placeholder="Ingrese una contraseña segura"
                 showPasswordRequirements={true}
               />
-              <Button onClick={handleSignup} disabled={loading} className="w-full text-lg py-4" variant="primary">
+              <Button onClick={handleSignup} disabled={loading} className="w-full text-base sm:text-lg py-3 sm:py-4" variant="primary">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -1103,8 +1337,8 @@ export default function App() {
                   </>
                 )}
               </Button>
-              <Button onClick={() => setCurrentView('login')} variant="outline" className="w-full text-lg py-4">
-                ← Volver al Login
+              <Button onClick={() => setCurrentView('landing')} variant="outline" className="w-full text-base sm:text-lg py-3 sm:py-4">
+                ← Volver al Inicio
               </Button>
             </div>
 
@@ -1122,18 +1356,18 @@ export default function App() {
             <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
           </div>
 
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-md p-6 sm:p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
             <div className="text-center mb-8">
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-700 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Mail size={40} className="text-white" />
+              <div className="bg-purple-600 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+                <Mail size={32} className="text-white sm:w-10 sm:h-10" />
               </div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">Verificar Email</h1>
-              <p className="text-slate-600 font-medium">Se envió un código a:</p>
-              <p className="text-purple-600 font-bold mt-1">{emailRegistrado}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Verificar Email</h1>
+              <p className="text-slate-600 font-medium text-sm sm:text-base">Se envió un código a:</p>
+              <p className="text-purple-600 font-bold mt-1 break-all text-sm sm:text-base">{emailRegistrado}</p>
             </div>
 
             <div className="space-y-5">
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
+              <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mb-4 transition-all duration-300 hover:bg-purple-100">
                 <p className="text-sm text-purple-800 text-center">
                   💡 Revise su bandeja de entrada o spam
                 </p>
@@ -1149,7 +1383,7 @@ export default function App() {
                 maxLength={6}
                 onKeyPress={(e) => e.key === 'Enter' && handleVerifyEmail()}
               />
-              <Button onClick={handleVerifyEmail} disabled={loading} className="w-full text-lg py-4" variant="primary">
+              <Button onClick={handleVerifyEmail} disabled={loading} className="w-full text-base sm:text-lg py-3 sm:py-4" variant="primary">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -1166,10 +1400,10 @@ export default function App() {
                 onClick={() => {
                   setEsperandoCodigo(false);
                   setCodigoVerificacion('');
-                  setCurrentView('login');
+                  setCurrentView('landing');
                 }} 
                 variant="outline" 
-                className="w-full text-lg py-4"
+                className="w-full text-base sm:text-lg py-3 sm:py-4"
               >
                 Cancelar
               </Button>
@@ -1189,13 +1423,13 @@ export default function App() {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-violet-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
         </div>
 
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-md p-6 sm:p-10 w-full max-w-md relative z-10 border border-white/20 animate-fadeIn">
           <div className="text-center mb-8">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
-              <Database size={40} className="text-white" />
+            <div className="bg-blue-600 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md transition-all duration-300 hover:bg-blue-700">
+              <Database size={32} className="text-white sm:w-10 sm:h-10" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Sistema de Gestión</h1>
-            <p className="text-slate-600 font-medium">Plataforma de Datos Personales</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Sistema de Gestión</h1>
+            <p className="text-slate-600 font-medium text-sm sm:text-base">Plataforma de Datos Personales</p>
           </div>
 
           <div className="space-y-5">
@@ -1219,7 +1453,7 @@ export default function App() {
               icon={Lock}
               onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
             />
-            <Button onClick={handleLogin} disabled={loading} className="w-full text-lg py-4">
+            <Button onClick={handleLogin} disabled={loading} className="w-full text-base sm:text-lg py-3 sm:py-4">
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -1232,18 +1466,16 @@ export default function App() {
                 </>
               )}
             </Button>
-            <Button onClick={() => setCurrentView('signup')} variant="outline" className="w-full text-lg py-4">
+            <Button onClick={() => setCurrentView('signup')} variant="outline" className="w-full text-base sm:text-lg py-3 sm:py-4">
               <UserPlus size={20} />
               Crear Cuenta Nueva
+            </Button>
+            <Button onClick={() => setCurrentView('landing')} variant="secondary" className="w-full text-base sm:text-lg py-3 sm:py-4">
+              ← Volver al Inicio
             </Button>
           </div>
 
           {message && <div className="mt-6"><Alert message={message} type={messageType} /></div>}
-
-          <div className="mt-8 pt-6 border-t border-slate-200 text-center">
-            <p className="text-sm text-slate-500">Sistema de Gestión de Datos</p>
-            <p className="text-xs text-slate-400 mt-1">Seguro y Confiable</p>
-          </div>
         </div>
       </div>
     );
@@ -1255,7 +1487,7 @@ export default function App() {
         <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white shadow-2xl">
           <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <div className="bg-white/10 backdrop-blur-sm p-3 rounded-xl">
+              <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl transition-all duration-300 hover:bg-white/30">
                 <Database size={32} />
               </div>
               <div>
@@ -1266,7 +1498,7 @@ export default function App() {
                 </p>
               </div>
             </div>
-            <Button variant="danger" onClick={handleLogout}>
+            <Button variant="dark" onClick={handleLogout}>
               <LogOut size={20} /> Cerrar Sesión
             </Button>
           </div>
@@ -1285,7 +1517,7 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div 
               onClick={() => setCurrentView('crear')} 
-              className="group bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-emerald-500/20"
+              className="group bg-emerald-600 hover:bg-emerald-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-emerald-600 hover:border-emerald-700"
               style={{ animationDelay: '0ms' }}
             >
               <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -1297,7 +1529,7 @@ export default function App() {
 
             <div 
               onClick={() => setCurrentView('consultar')} 
-              className="group bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-blue-500/20"
+              className="group bg-blue-600 hover:bg-blue-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-blue-600 hover:border-blue-700"
               style={{ animationDelay: '100ms' }}
             >
               <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -1309,7 +1541,7 @@ export default function App() {
 
             <div 
               onClick={() => setCurrentView('modificar')} 
-              className="group bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-amber-500/20"
+              className="group bg-amber-600 hover:bg-amber-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-amber-600 hover:border-amber-700"
               style={{ animationDelay: '200ms' }}
             >
               <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -1321,7 +1553,7 @@ export default function App() {
 
             <div 
               onClick={() => setCurrentView('eliminar')} 
-              className="group bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-rose-500/20"
+              className="group bg-rose-600 hover:bg-rose-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-rose-600 hover:border-rose-700"
               style={{ animationDelay: '300ms' }}
             >
               <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -1333,7 +1565,7 @@ export default function App() {
 
             <div 
               onClick={() => setCurrentView('logs')} 
-              className="group bg-gradient-to-br from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-purple-500/20"
+              className="group bg-purple-600 hover:bg-purple-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-purple-600 hover:border-purple-700"
               style={{ animationDelay: '400ms' }}
             >
               <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -1345,7 +1577,7 @@ export default function App() {
 
             <div 
               onClick={() => setCurrentView('chat')}
-              className="group bg-gradient-to-br from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-slideUp cursor-pointer border border-cyan-500/20"
+              className="group bg-cyan-600 hover:bg-cyan-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-cyan-600 hover:border-cyan-700"
               style={{ animationDelay: '500ms' }}
             >
               <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -1380,9 +1612,9 @@ export default function App() {
           {message && <Alert message={message} type={messageType} />}
           
           <Card title="Chat con Asistente IA" icon={MessageCircle}>
-            <div className="bg-gradient-to-r from-cyan-50 to-teal-100 p-6 rounded-xl mb-6 border border-cyan-200">
+            <div className="bg-cyan-50 p-6 rounded-xl mb-6 border-2 border-cyan-200 transition-all duration-300 hover:bg-cyan-100">
               <div className="flex items-start gap-4">
-                <div className="bg-gradient-to-r from-cyan-600 to-teal-700 p-3 rounded-xl">
+                <div className="bg-cyan-600 p-3 rounded-xl transition-all duration-300 hover:bg-cyan-700">
                   <Sparkles className="text-white" size={28} />
                 </div>
                 <div className="flex-1">
@@ -1404,10 +1636,10 @@ export default function App() {
             </div>
 
             {/* Área de mensajes del chat */}
-            <div className="bg-slate-50 rounded-xl p-6 mb-6 border border-slate-200" style={{ height: '500px', overflowY: 'auto' }}>
+            <div className="bg-slate-50 rounded-xl p-6 mb-6 border-2 border-slate-200 transition-all duration-300 hover:bg-slate-100" style={{ height: '500px', overflowY: 'auto' }}>
               {chatMessages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
-                  <div className="bg-gradient-to-r from-cyan-600 to-teal-700 w-20 h-20 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+                  <div className="bg-cyan-600 w-20 h-20 rounded-2xl flex items-center justify-center mb-4 shadow-md transition-all duration-300 hover:bg-cyan-700">
                     <Bot size={40} className="text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 mb-2">¡Hola! Soy tu asistente inteligente</h3>
@@ -1423,10 +1655,10 @@ export default function App() {
                   {chatLoading && (
                     <div className="flex justify-start mb-4 animate-fadeIn">
                       <div className="flex items-start gap-3">
-                        <div className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-violet-700 shadow-lg">
+                        <div className="p-3 rounded-full bg-purple-600 shadow-md transition-all duration-300 hover:bg-purple-700">
                           <Bot size={20} className="text-white" />
                         </div>
-                        <div className="px-6 py-4 rounded-2xl shadow-md bg-white text-slate-800 border border-slate-200">
+                        <div className="px-6 py-4 rounded-2xl shadow-md bg-white text-slate-800 border-2 border-slate-200 transition-all duration-300 hover:bg-slate-50">
                           <div className="flex items-center gap-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-600"></div>
                             <span className="text-sm">Pensando...</span>
@@ -1701,12 +1933,12 @@ export default function App() {
 
           {personaConsultada && (
             <Card title="Información de la Persona" icon={User}>
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-100 p-6 rounded-xl mb-6 border border-blue-200">
+              <div className="bg-blue-50 p-6 rounded-xl mb-6 border-2 border-blue-200 transition-all duration-300 hover:bg-blue-100">
                 <div className="flex items-start gap-6">
                   <img 
                     src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
                     alt="Foto de perfil" 
-                    className="w-32 h-32 rounded-xl object-cover border-4 border-white shadow-lg"
+                    className="w-32 h-32 rounded-xl object-cover border-4 border-white shadow-md transition-all duration-300 hover:scale-105"
                     onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                   />
                   <div className="flex-1">
@@ -1718,28 +1950,28 @@ export default function App() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-200 transition-all duration-300 hover:bg-slate-100 hover:shadow-md">
                   <div className="flex items-center gap-3 mb-2">
                     <Mail className="text-blue-600" size={20} />
                     <p className="text-sm text-slate-600 font-semibold">Correo Electrónico</p>
                   </div>
                   <p className="font-semibold text-slate-800 ml-8">{personaConsultada.correo}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-200 transition-all duration-300 hover:bg-slate-100 hover:shadow-md">
                   <div className="flex items-center gap-3 mb-2">
                     <Phone className="text-green-600" size={20} />
                     <p className="text-sm text-slate-600 font-semibold">Celular</p>
                   </div>
                   <p className="font-semibold text-slate-800 ml-8">{personaConsultada.celular}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-200 transition-all duration-300 hover:bg-slate-100 hover:shadow-md">
                   <div className="flex items-center gap-3 mb-2">
                     <Calendar className="text-purple-600" size={20} />
                     <p className="text-sm text-slate-600 font-semibold">Fecha de Nacimiento</p>
                   </div>
                   <p className="font-semibold text-slate-800 ml-8">{personaConsultada.fecha_nacimiento}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                <div className="bg-slate-50 p-4 rounded-xl border-2 border-slate-200 transition-all duration-300 hover:bg-slate-100 hover:shadow-md">
                   <div className="flex items-center gap-3 mb-2">
                     <User className="text-orange-600" size={20} />
                     <p className="text-sm text-slate-600 font-semibold">Género</p>
@@ -1809,12 +2041,12 @@ export default function App() {
           ) : (
             <>
               <Card title="Datos Actuales" icon={User}>
-                <div className="bg-gradient-to-r from-amber-50 to-orange-100 p-6 rounded-xl">
+                <div className="bg-amber-50 p-6 rounded-xl transition-all duration-300 hover:bg-amber-100">
                   <div className="flex items-start gap-6">
                     <img 
                       src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
                       alt="Foto de perfil" 
-                      className="w-24 h-24 rounded-xl object-cover border-4 border-white shadow-lg"
+                      className="w-24 h-24 rounded-xl object-cover border-4 border-white shadow-md transition-all duration-300 hover:scale-105"
                       onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                     />
                     <div className="flex-1">
@@ -1831,7 +2063,7 @@ export default function App() {
               </Card>
 
               <Card title="Modificar Información" icon={Edit2}>
-                <p className="text-sm text-slate-600 mb-6 bg-blue-50 p-4 rounded-xl border border-blue-200">
+                <p className="text-sm text-slate-600 mb-6 bg-blue-50 p-4 rounded-xl border-2 border-blue-200 transition-all duration-300 hover:bg-blue-100">
                   💡 <strong>Instrucción:</strong> Solo complete los campos que desea modificar. Los campos vacíos no serán actualizados.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -1978,9 +2210,9 @@ export default function App() {
 
           {personaConsultada && (
             <Card title="Confirmar Eliminación" icon={Trash2}>
-              <div className="bg-rose-50 border-2 border-rose-300 p-6 rounded-xl mb-6">
+              <div className="bg-rose-50 border-2 border-rose-300 p-6 rounded-xl mb-6 transition-all duration-300 hover:bg-rose-100">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-rose-100 p-3 rounded-full">
+                  <div className="bg-rose-100 p-3 rounded-full transition-all duration-300 hover:scale-105">
                     <AlertCircle className="text-rose-600" size={32} />
                   </div>
                   <div>
@@ -1988,12 +2220,12 @@ export default function App() {
                     <p className="text-rose-700 text-sm">Los datos serán eliminados permanentemente del sistema</p>
                   </div>
                 </div>
-                <div className="space-y-3 bg-white p-4 rounded-lg">
+                <div className="space-y-3 bg-white p-4 rounded-lg transition-all duration-300 hover:bg-slate-50">
                   <div className="flex justify-center mb-4">
                     <img 
                       src={personaConsultada.foto || PLACEHOLDER_IMAGE} 
                       alt="Foto de perfil" 
-                      className="w-24 h-24 rounded-xl object-cover border-4 border-slate-200 shadow-lg"
+                      className="w-24 h-24 rounded-xl object-cover border-4 border-slate-200 shadow-md transition-all duration-300 hover:scale-105"
                       onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
                     />
                   </div>
@@ -2092,7 +2324,7 @@ export default function App() {
             <Card title={`Registros Encontrados: ${logs.length} operaciones`} icon={FileText}>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-purple-600 to-violet-700 text-white">
+                  <thead className="bg-purple-600 text-white">
                     <tr>
                       <th className="p-4 text-left font-bold rounded-tl-xl">Operación</th>
                       <th className="p-4 text-left font-bold">Usuario</th>
@@ -2102,18 +2334,19 @@ export default function App() {
                   </thead>
                   <tbody>
                     {logs.map((log, idx) => (
-                      <tr key={idx} className="border-b border-slate-200 hover:bg-purple-50 transition-colors animate-fadeIn" style={{ animationDelay: `${idx * 50}ms` }}>
+                      <tr key={idx} className="border-b border-slate-200 hover:bg-purple-50 transition-colors duration-300 animate-fadeIn" style={{ animationDelay: `${idx * 50}ms` }}>
                         <td className="p-4">
-                          <span className={`px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center gap-2 ${
-                            log.tipo_operacion === 'CREAR' ? 'bg-green-100 text-green-800' :
-                            log.tipo_operacion === 'MODIFICAR' ? 'bg-amber-100 text-amber-800' :
-                            log.tipo_operacion === 'ELIMINAR' ? 'bg-rose-100 text-rose-800' :
-                            'bg-blue-100 text-blue-800'
+                          <span className={`px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
+                            log.tipo_operacion === 'CREAR' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+                            log.tipo_operacion === 'MODIFICAR' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' :
+                            log.tipo_operacion === 'ELIMINAR' ? 'bg-rose-100 text-rose-800 hover:bg-rose-200' :
+                            'bg-blue-100 text-blue-800 hover:bg-blue-200'
                           }`}>
                             {log.tipo_operacion === 'CREAR' && <Plus size={16} />}
                             {log.tipo_operacion === 'MODIFICAR' && <Edit2 size={16} />}
                             {log.tipo_operacion === 'ELIMINAR' && <Trash2 size={16} />}
                             {log.tipo_operacion === 'CONSULTAR' && <Search size={16} />}
+                            {log.tipo_operacion === 'CONSULTAR_RAG' && <Search size={16} />}
                             {log.tipo_operacion}
                           </span>
                         </td>
@@ -2129,7 +2362,7 @@ export default function App() {
           ) : (
             <Card title="Sin Resultados" icon={FileText}>
               <div className="text-center py-12">
-                <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 hover:scale-105">
                   <FileText size={40} className="text-slate-400" />
                 </div>
                 <p className="text-slate-500 text-lg">No se encontraron registros con los filtros seleccionados</p>
