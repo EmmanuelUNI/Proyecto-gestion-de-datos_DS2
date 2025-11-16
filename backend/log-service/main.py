@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 import jwt
 from log_manager import LogManager
+import pytz
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ async def registrar_log(
         logger.info(f"Registrando log: {request.tipo_operacion} para documento {request.documento_afectado}")
 
         # Si no envían fecha, se usa la actual
-        fecha = request.fecha_transaccion or datetime.utcnow()
+        fecha = datetime.now(pytz.timezone("America/Bogota"))
 
         # Preparar log completo
         log_data = log_manager.preparar_log(
@@ -97,7 +98,7 @@ async def consultar_logs(
             filtros["documento_afectado"] = documento
 
         resultado = await log_manager.obtener_logs(filtros, credentials.credentials)
-
+        logger.info(f"estoy aqui cabron --------------------------------------------x2")
         if not resultado:
             return {"status": "success", "message": "Sin resultados", "data": []}
 

@@ -97,13 +97,14 @@ async def consulta_natural(request: dict, credentials: HTTPAuthorizationCredenti
 async def registrar_log(request: dict, credentials: HTTPAuthorizationCredentials = Depends(security)):
     return await _forward_request("POST", f"{config.LOGS_URL}/registrar", token=credentials.credentials, json=request)
 
-@app.get("/logs")
+@app.get("/logs/")
 async def consultar_logs(
     tipo_operacion: Optional[str] = None,
     documento: Optional[str] = None,
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     params = {"tipo_operacion": tipo_operacion, "documento": documento}
+    logger.info(f"estoy aqui cabron --------------------------------------------")
     return await _forward_request("GET", f"{config.LOGS_URL}/consultar", token=credentials.credentials, params=params)
 
 @app.get("/logs/usuario/{usuario_email}")

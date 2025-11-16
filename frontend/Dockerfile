@@ -16,7 +16,5 @@ RUN apk add --no-cache gettext
 
 EXPOSE 80
 
-# Definir variable por defecto
-ENV API_URL=http://localhost:8000
 
 CMD ["/bin/sh", "-c", "envsubst '$API_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]

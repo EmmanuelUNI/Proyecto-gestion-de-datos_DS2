@@ -44,7 +44,7 @@ Contexto - Datos disponibles:
 
 Pregunta del usuario: {pregunta}
 
-Responde basándote SOLO en los datos proporcionados arriba."""
+Responde basándote SOLO en los datos proporcionados arriba. (respuesta breve y concisa)"""
             if not config.GOOGLE_MODEL:
                 raise ValueError("❌ GOOGLE_MODEL no está configurada")
             
