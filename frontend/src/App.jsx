@@ -775,7 +775,8 @@ export default function App() {
     created: 0, 
     modified: 0, 
     consulted: 0,
-    consultedRag: 0
+    consultedRag: 0,
+    deleted: 0
   });
 
   const [registroEmail, setRegistroEmail] = useState('');
@@ -841,7 +842,8 @@ export default function App() {
           created: logsData.filter(l => l.tipo_operacion === 'CREAR').length,
           modified: logsData.filter(l => l.tipo_operacion === 'MODIFICAR').length,
           consulted: logsData.filter(l => l.tipo_operacion === 'CONSULTAR').length,
-          consultedRag: logsData.filter(l => l.tipo_operacion === 'CONSULTAR_RAG').length // NUEVO
+          consultedRag: logsData.filter(l => l.tipo_operacion === 'CONSULTAR_RAG').length,
+          deleted: logsData.filter(l => l.tipo_operacion === 'ELIMINAR').length
         });
       }
     } catch (error) {
@@ -1517,12 +1519,13 @@ export default function App() {
         </div>
 
         <div className="max-w-7xl mx-auto p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
             <StatCard title="Total de Operaciones" value={stats.total} icon={BarChart3} color="#3B82F6" delay={0} />
             <StatCard title="Personas Creadas" value={stats.created} icon={Plus} color="#10B981" delay={100} />
             <StatCard title="Modificaciones" value={stats.modified} icon={Edit2} color="#F59E0B" delay={200} />
-            <StatCard title="Consultas" value={stats.consulted} icon={Search} color="#8B5CF6" delay={300} />
-            <StatCard title="Consultas IA" value={stats.consultedRag} icon={Sparkles} color="#0891b2" delay={400} />
+            <StatCard title="Eliminaciones" value={stats.deleted} icon={Trash2} color="#EF4444" delay={300} />
+            <StatCard title="Consultas" value={stats.consulted} icon={Search} color="#8B5CF6" delay={400} />
+            <StatCard title="Consultas IA" value={stats.consultedRag} icon={Sparkles} color="#0891b2" delay={500} />
           </div>
 
           <h2 className="text-3xl font-bold mb-6 text-slate-800">Panel de Control</h2>
