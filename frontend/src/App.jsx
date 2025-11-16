@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles, Eye, EyeOff, Menu, XCircle, ArrowRight, Zap, TrendingUp, Globe, Server, Cloud } from 'lucide-react';
+import { LogOut, Plus, Edit2, Search, Trash2, FileText, AlertCircle, CheckCircle, User, Mail, Phone, Calendar, CreditCard, Users, Upload, X, UserPlus, Lock, ChevronRight, Database, BarChart3, Shield, MessageCircle, Send, Bot, Sparkles, Eye, EyeOff, Menu, XCircle, ArrowRight, Zap, TrendingUp, Globe, Server, Cloud, Filter } from 'lucide-react';
 
 const API_URL = '';
 
@@ -799,7 +799,12 @@ export default function App() {
   const [formModificar, setFormModificar] = useState({});
   const [erroresModificar, setErroresModificar] = useState({});
 
-  const [filtroLogs, setFiltroLogs] = useState({ tipo_operacion: '', documento: '' });
+  const [filtroLogs, setFiltroLogs] = useState({ 
+    tipo_operacion: '', 
+    documento: '',
+    fecha_desde: '',
+    fecha_hasta: ''
+  });
   const [logs, setLogs] = useState([]);
 
   const [chatMessages, setChatMessages] = useState([]);
@@ -2272,6 +2277,30 @@ export default function App() {
   }
 
   if (currentView === 'logs') {
+    // Función auxiliar para filtrar por fechas en el frontend
+    const filtrarPorFechas = (logsData) => {
+      if (!filtroLogs.fecha_desde && !filtroLogs.fecha_hasta) {
+        return logsData;
+      }
+
+      return logsData.filter(log => {
+        const fechaLog = new Date(log.fecha_transaccion);
+        const desde = filtroLogs.fecha_desde ? new Date(filtroLogs.fecha_desde) : null;
+        const hasta = filtroLogs.fecha_hasta ? new Date(filtroLogs.fecha_hasta + 'T23:59:59') : null;
+
+        if (desde && hasta) {
+          return fechaLog >= desde && fechaLog <= hasta;
+        } else if (desde) {
+          return fechaLog >= desde;
+        } else if (hasta) {
+          return fechaLog <= hasta;
+        }
+        return true;
+      });
+    };
+
+    const logsFiltrados = filtrarPorFechas(logs);
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <ViewHeader
@@ -2287,7 +2316,8 @@ export default function App() {
           {message && <Alert message={message} type={messageType} />}
           
           <Card title="Filtros de Búsqueda" icon={Search}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Filtros básicos */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <Select
                 label="Tipo de Operación"
                 value={filtroLogs.tipo_operacion}
@@ -2296,7 +2326,8 @@ export default function App() {
                   { value: 'CREAR', label: 'Crear' },
                   { value: 'CONSULTAR', label: 'Consultar' },
                   { value: 'MODIFICAR', label: 'Modificar' },
-                  { value: 'ELIMINAR', label: 'Eliminar' }
+                  { value: 'ELIMINAR', label: 'Eliminar' },
+                  { value: 'CONSULTAR_RAG', label: 'Consulta IA' }
                 ]}
               />
               <Input
@@ -2306,22 +2337,86 @@ export default function App() {
                 placeholder="1234567890"
                 icon={CreditCard}
               />
-              <div className="flex items-end">
-                <Button onClick={handleConsultarLogs} disabled={loading} className="w-full">
-                  <Search size={20} /> {loading ? 'Buscando...' : 'Buscar Logs'}
-                </Button>
-              </div>
             </div>
-            <Button variant="outline" onClick={() => {
-              setFiltroLogs({ tipo_operacion: '', documento: '' });
-              handleConsultarLogs();
-            }} className="w-full">
-              Mostrar Todos los Logs
-            </Button>
+
+            {/* Filtros de fecha */}
+            <div className="bg-purple-50 p-4 rounded-xl border-2 border-purple-200 mb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar className="text-purple-600" size={20} />
+                <h3 className="font-semibold text-slate-800">Filtrar por Rango de Fechas</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Fecha Desde"
+                  type="date"
+                  value={filtroLogs.fecha_desde || ''}
+                  onChange={(e) => setFiltroLogs({...filtroLogs, fecha_desde: e.target.value})}
+                  icon={Calendar}
+                />
+                <Input
+                  label="Fecha Hasta"
+                  type="date"
+                  value={filtroLogs.fecha_hasta || ''}
+                  onChange={(e) => setFiltroLogs({...filtroLogs, fecha_hasta: e.target.value})}
+                  icon={Calendar}
+                />
+              </div>
+              <p className="text-xs text-purple-700 mt-2 flex items-center gap-1">
+                <span>💡</span>
+                <span>El filtrado por fecha se realiza localmente después de obtener los logs</span>
+              </p>
+            </div>
+
+            {/* Indicador de filtros activos */}
+            {(filtroLogs.tipo_operacion || filtroLogs.documento || filtroLogs.fecha_desde || filtroLogs.fecha_hasta) && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 animate-fadeIn">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Filter className="text-blue-600" size={20} />
+                    <span className="text-sm font-semibold text-blue-800">Filtros activos</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {filtroLogs.tipo_operacion && (
+                      <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-lg text-xs font-semibold">
+                        Tipo: {filtroLogs.tipo_operacion}
+                      </span>
+                    )}
+                    {filtroLogs.documento && (
+                      <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-lg text-xs font-semibold">
+                        Doc: {filtroLogs.documento}
+                      </span>
+                    )}
+                    {filtroLogs.fecha_desde && (
+                      <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-lg text-xs font-semibold">
+                        Desde: {filtroLogs.fecha_desde}
+                      </span>
+                    )}
+                    {filtroLogs.fecha_hasta && (
+                      <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-lg text-xs font-semibold">
+                        Hasta: {filtroLogs.fecha_hasta}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Botones de acción */}
+            <div className="flex gap-4">
+              <Button onClick={handleConsultarLogs} disabled={loading} className="flex-1">
+                <Search size={20} /> {loading ? 'Buscando...' : 'Buscar Logs'}
+              </Button>
+              <Button variant="outline" onClick={() => {
+                setFiltroLogs({ tipo_operacion: '', documento: '', fecha_desde: '', fecha_hasta: '' });
+                handleConsultarLogs();
+              }} className="flex-1">
+                Limpiar y Mostrar Todos
+              </Button>
+            </div>
           </Card>
 
-          {logs.length > 0 ? (
-            <Card title={`Registros Encontrados: ${logs.length} operaciones`} icon={FileText}>
+          {logsFiltrados.length > 0 ? (
+            <Card title={`Registros Encontrados: ${logsFiltrados.length} operaciones`} icon={FileText}>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-purple-600 text-white">
@@ -2333,7 +2428,7 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map((log, idx) => (
+                    {logsFiltrados.map((log, idx) => (
                       <tr key={idx} className="border-b border-slate-200 hover:bg-purple-50 transition-colors duration-300 animate-fadeIn" style={{ animationDelay: `${idx * 50}ms` }}>
                         <td className="p-4">
                           <span className={`px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
@@ -2345,13 +2440,12 @@ export default function App() {
                             {log.tipo_operacion === 'CREAR' && <Plus size={16} />}
                             {log.tipo_operacion === 'MODIFICAR' && <Edit2 size={16} />}
                             {log.tipo_operacion === 'ELIMINAR' && <Trash2 size={16} />}
-                            {log.tipo_operacion === 'CONSULTAR' && <Search size={16} />}
-                            {log.tipo_operacion === 'CONSULTAR_RAG' && <Search size={16} />}
+                            {(log.tipo_operacion === 'CONSULTAR' || log.tipo_operacion === 'CONSULTAR_RAG') && <Search size={16} />}
                             {log.tipo_operacion}
                           </span>
                         </td>
                         <td className="p-4 font-semibold text-slate-700">{log.usuario_email}</td>
-                        <td className="p-4 font-mono text-slate-800">{log.documento_afectado}</td>
+                        <td className="p-4 font-mono text-slate-800">{log.documento_afectado || 'N/A'}</td>
                         <td className="p-4 text-slate-600">{new Date(log.fecha_transaccion).toLocaleString('es-CO')}</td>
                       </tr>
                     ))}
