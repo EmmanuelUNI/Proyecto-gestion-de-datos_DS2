@@ -74,11 +74,14 @@ Responde basándote SOLO en los datos proporcionados arriba. (respuesta breve y 
 
             linea = f"{i}. "
             if isinstance(persona, dict):
-                linea += f"{persona.get('primer_nombre', 'N/A')} {persona.get('apellidos', 'N/A')}"
+                linea += f"{persona.get('primer_nombre', 'N/A')} {persona.get('segundo_nombre', 'N/A')} {persona.get('apellidos', 'N/A')}"
+                linea += f" Tipo Doc: {persona.get('tipo_doc', 'N/A')}"
                 linea += f" (Documento: {persona.get('nro_doc', 'N/A')})"
                 linea += f" - Edad: {persona.get('fecha_nacimiento', 'N/A')}"
                 linea += f" - Género: {persona.get('genero', 'N/A')}"
                 linea += f" - Email: {persona.get('correo', 'N/A')}"
+                linea += f" - Celular: {persona.get('celular', 'N/A')}"
+                
             else:
                 linea += str(persona)
 
@@ -98,11 +101,7 @@ Responde basándote SOLO en los datos proporcionados arriba. (respuesta breve y 
         """
         try:
             logger.debug(f"Obteniendo embedding para: {texto[:50]}...")
-
-            # Si decides usar embeddings reales:
-            # embedding_model = self.client.models.get_model("embedding-001")
-            # embedding = embedding_model.embed_content(texto).embedding
-            # return embedding
+            # Gemini maneja internamente los embeddings, no es necesario solicitarlos explícitamente
 
             logger.debug("Embedding no necesario para Gemini (usa attention internamente)")
             return []
