@@ -770,7 +770,13 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
-  const [stats, setStats] = useState({ total: 0, created: 0, modified: 0, consulted: 0 });
+  const [stats, setStats] = useState({ 
+    total: 0, 
+    created: 0, 
+    modified: 0, 
+    consulted: 0,
+    consultedRag: 0
+  });
 
   const [registroEmail, setRegistroEmail] = useState('');
   const [registroPassword, setRegistroPassword] = useState('');
@@ -834,7 +840,8 @@ export default function App() {
           total: logsData.length,
           created: logsData.filter(l => l.tipo_operacion === 'CREAR').length,
           modified: logsData.filter(l => l.tipo_operacion === 'MODIFICAR').length,
-          consulted: logsData.filter(l => l.tipo_operacion === 'CONSULTAR').length
+          consulted: logsData.filter(l => l.tipo_operacion === 'CONSULTAR').length,
+          consultedRag: logsData.filter(l => l.tipo_operacion === 'CONSULTAR_RAG').length // NUEVO
         });
       }
     } catch (error) {
@@ -1515,6 +1522,7 @@ export default function App() {
             <StatCard title="Personas Creadas" value={stats.created} icon={Plus} color="#10B981" delay={100} />
             <StatCard title="Modificaciones" value={stats.modified} icon={Edit2} color="#F59E0B" delay={200} />
             <StatCard title="Consultas" value={stats.consulted} icon={Search} color="#8B5CF6" delay={300} />
+            <StatCard title="Consultas IA" value={stats.consultedRag} icon={Sparkles} color="#0993b6ff" delay={400} />
           </div>
 
           <h2 className="text-3xl font-bold mb-6 text-slate-800">Panel de Control</h2>
