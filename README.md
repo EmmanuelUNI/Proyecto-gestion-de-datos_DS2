@@ -19,5 +19,11 @@ El despliegue final se realizó en Microsoft Azure.
 
 ## Créditos
 
-Proyecto desarrollado como entrega final para la universidad.
+Proyecto desarrollado como entrega final para la materia diseño de software II de la Universidad del Norte.
+
+**Integrantes:**
+
+* Jhon Minotta
+* Emmanuel Monterrosa
+* Sharik Bonadiez
 
