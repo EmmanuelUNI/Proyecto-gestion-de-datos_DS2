@@ -1519,7 +1519,7 @@ export default function App() {
         </div>
 
         <div className="max-w-7xl mx-auto p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
             <StatCard title="Total de Operaciones" value={stats.total} icon={BarChart3} color="#3B82F6" delay={0} />
             <StatCard title="Personas Creadas" value={stats.created} icon={Plus} color="#10B981" delay={100} />
             <StatCard title="Modificaciones" value={stats.modified} icon={Edit2} color="#F59E0B" delay={200} />
