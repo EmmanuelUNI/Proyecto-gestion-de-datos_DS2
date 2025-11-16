@@ -21,3 +21,9 @@ El despliegue final se realizó en Microsoft Azure.
 
 Proyecto desarrollado como entrega final para la universidad.
 
+**Integrantes:**
+
+* Jhon Minotta
+* Emmanuel Monterrosa
+* Sharik Bonadiez
+
