@@ -22,7 +22,18 @@ async def consultar_persona(nro_doc: str, credentials: HTTPAuthorizationCredenti
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
+    
+@app.get("/consultar_todas")
+async def consultar_persona2( credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        resultado = await roble.obtener_todas_persona(credentials.credentials)
+        if not resultado:
+            raise HTTPException(status_code=404, detail="Persona no encontrada")
+        await _registrar_log("CONSULTAR", _extraer_email(credentials.credentials), "TODOS", "Consulta de persona",credentials.credentials)
+        return {"status": "success", "data": resultado}
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 async def _registrar_log(tipo, email, doc, desc, token):
     try:

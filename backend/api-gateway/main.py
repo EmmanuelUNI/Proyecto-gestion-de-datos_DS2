@@ -81,6 +81,10 @@ async def crear_persona(request: dict, credentials: HTTPAuthorizationCredentials
 async def consultar_persona(nro_doc: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
     return await _forward_request("GET", f"{config.CONSULTAR_URL}/consultar/{nro_doc}", token=credentials.credentials)
 
+@app.get("/personas/consultar-todas")
+async def consultar_persona2(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    return await _forward_request("GET", f"{config.CONSULTAR_URL}/consultar_todas", token=credentials.credentials)
+
 @app.put("/personas/modificar/{nro_doc}")
 async def modificar_persona(nro_doc: str, request: dict, credentials: HTTPAuthorizationCredentials = Depends(security)):
     return await _forward_request("PUT", f"{config.MODIFICAR_URL}/modificar/{nro_doc}", token=credentials.credentials, json=request)

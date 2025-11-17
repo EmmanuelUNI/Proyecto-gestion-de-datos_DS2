@@ -1095,6 +1095,7 @@ export default function App() {
   const [esperandoCodigo, setEsperandoCodigo] = useState(false);
   const [emailRegistrado, setEmailRegistrado] = useState('');
   const [erroresRegistro, setErroresRegistro] = useState({});
+  const [imageKey, setImageKey] = useState(0);
 
   const [formCrear, setFormCrear] = useState({
     primer_nombre: '',
@@ -1113,8 +1114,38 @@ export default function App() {
   const [nroDocConsulta, setNroDocConsulta] = useState('');
   const [personaConsultada, setPersonaConsultada] = useState(null);
   const [formModificar, setFormModificar] = useState({});
-  const [erroresModificar, setErroresModificar] = useState({});
+  const [todasLasPersonas, setTodasLasPersonas] = useState([]);
 
+  const [erroresModificar, setErroresModificar] = useState({});
+  const [mostrandoTodas, setMostrandoTodas] = useState(false);
+  const handleConsultarTodas = async () => {
+    setLoading(true);
+    setPersonaConsultada(null);
+    setNroDocConsulta('');
+    try {
+      const response = await fetch(`${API_URL}/personas/consultar-todas`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.data) {
+        const personas = Array.isArray(data.data) ? data.data : [];
+        setTodasLasPersonas(personas);
+        setMostrandoTodas(true);
+        showMessage(`Se encontraron ${personas.length} personas registradas`);
+      } else {
+        showMessage(data.detail || 'Error al consultar', 'error');
+        setTodasLasPersonas([]);
+        setMostrandoTodas(false);
+      }
+    } catch (error) {
+      showMessage('Error de conexión: ' + error.message, 'error');
+      setTodasLasPersonas([]);
+      setMostrandoTodas(false);
+    }
+    setLoading(false);
+  };
   const [filtroLogs, setFiltroLogs] = useState({ 
     tipo_operacion: '', 
     documento: '',
@@ -1380,6 +1411,7 @@ export default function App() {
           foto: ''
         });
         setErroresCrear({});
+        setImageKey(prev => prev + 1);
       } else {
         showMessage(data.detail || 'Error al crear persona', 'error');
       }
@@ -1423,7 +1455,27 @@ export default function App() {
     }
     setLoading(false);
   };
+  const handleConsultarPersona2 = async (doc) => {
+    try {
+      setLoading(true);
 
+      const response = await fetch(`${API_URL}/personas/consultar/${doc}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+
+      // si viene un array, tomar el primer elemento
+      const persona = Array.isArray(data.data) ? data.data[0] : data.data;
+
+      setPersonaConsultada(persona || null);
+
+    } catch (error) {
+      setPersonaConsultada(null);
+    } finally {
+      setLoading(false);
+    }
+  };
   const validarFormModificar = () => {
     const errores = {};
 
@@ -1863,7 +1915,7 @@ export default function App() {
               <span className="text-xl">Consultar Datos</span>
               <p className="text-blue-100 text-sm mt-2 opacity-90">Buscar información de personas</p>
             </div>
-
+            
             <div 
               onClick={() => setCurrentView('modificar')} 
               className="group bg-amber-600 hover:bg-amber-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-amber-600 hover:border-amber-700"
@@ -2173,6 +2225,7 @@ export default function App() {
             
             <div className="mb-8">
               <ImageUpload
+                key={imageKey}
                 label="Foto"
                 value={formCrear.foto}
                 onChange={(base64, error) => {
@@ -2255,7 +2308,85 @@ export default function App() {
               </Button>
             </div>
           </Card>
-
+          <div className="flex gap-4">
+            <Button 
+              onClick={handleConsultarPersona} 
+              disabled={loading} 
+              className="flex-1 text-lg py-4"
+              variant="primary"
+            >
+              <Search size={20} />
+              Buscar Persona
+            </Button>
+            <Button 
+              onClick={handleConsultarTodas} 
+              disabled={loading} 
+              className="flex-1 text-lg py-4"
+              variant="success"
+            >
+              <Users size={20} />
+              Mostrar Todas
+            </Button>
+          </div>
+          {mostrandoTodas && todasLasPersonas.length > 0 && (
+            <Card title={`Todas las Personas (${todasLasPersonas.length} registros)`} icon={Users}>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-blue-600 text-white">
+                    <tr>
+                      <th className="p-4 text-left font-bold">Foto</th>
+                      <th className="p-4 text-left font-bold">Nombre Completo</th>
+                      <th className="p-4 text-left font-bold">Documento</th>
+                      <th className="p-4 text-left font-bold">Correo</th>
+                      <th className="p-4 text-left font-bold">Celular</th>
+                      <th className="p-4 text-center font-bold">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {todasLasPersonas.map((persona, idx) => (
+                      <tr key={idx} className="border-b border-slate-200 hover:bg-blue-50 transition-all duration-300">
+                        <td className="p-4">
+                          <img 
+                            src={persona.foto || PLACEHOLDER_IMAGE} 
+                            alt="Foto" 
+                            className="w-16 h-16 rounded-lg object-cover border-2 border-slate-200 shadow-sm"
+                            onError={(e) => { e.target.src = PLACEHOLDER_IMAGE; }}
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="font-semibold text-slate-800">
+                            {persona.primer_nombre} {persona.segundo_nombre} {persona.apellidos}
+                          </div>
+                          <div className="text-sm text-slate-600">{persona.genero}</div>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-mono text-slate-800 font-semibold">{persona.nro_doc}</div>
+                          <div className="text-sm text-slate-600">{persona.tipo_doc}</div>
+                        </td>
+                        <td className="p-4 text-slate-700">{persona.correo}</td>
+                        <td className="p-4 text-slate-700">{persona.celular}</td>
+                        <td className="p-4 text-center">
+                          <Button
+                            onClick={() => {
+                              handleConsultarPersona2(persona.nro_doc);
+                              setPersonaConsultada(persona);
+                              setNroDocConsulta(persona.nro_doc);
+                              setMostrandoTodas(false);
+                            }}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Eye size={16} />
+                            Ver Detalles
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
           {personaConsultada && (
             <Card title="Información de la Persona" icon={User}>
               <div className="bg-blue-50 p-6 rounded-xl mb-6 border-2 border-blue-200 transition-all duration-300 hover:bg-blue-100">
