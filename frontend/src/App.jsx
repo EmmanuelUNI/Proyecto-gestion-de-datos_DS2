@@ -1140,7 +1140,7 @@ export default function App() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${API_URL}/logs`, {
+      const response = await fetch(`${API_URL}/logs?`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
