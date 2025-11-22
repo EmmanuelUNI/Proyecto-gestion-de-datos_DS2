@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
-
+from fastapi import File, UploadFile, Form
 # =====================================================
 # CONFIGURACIÓN CENTRALIZADA
 # =====================================================
@@ -44,21 +44,49 @@ logger = logging.getLogger(__name__)
 # =====================================================
 # FUNCIONES AUXILIARES
 # =====================================================
-async def _forward_request(method: str, url: str, token: Optional[str] = None, json: Optional[dict] = None, params: Optional[dict] = None):
+async def _forward_request(
+    method: str,
+    url: str,
+    token: Optional[str] = None,
+    json: Optional[dict] = None,
+    params: Optional[dict] = None,
+    files: Optional[dict] = None,
+    data: Optional[dict] = None,
+):
     headers = {"Authorization": f"Bearer {token}"} if token else {}
-    try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            response = await client.request(method, url, json=json, params=params, headers=headers)
-            response.raise_for_status()
-            return response.json()
-    except httpx.RequestError as e:
-        logger.error(f"Error de conexión con {url}: {e}")
-        raise HTTPException(status_code=503, detail=f"Servicio no disponible: {url}")
-    except httpx.HTTPStatusError as e:
-        logger.warning(f"Error HTTP {e.response.status_code} desde {url}")
-        return {"status": "error", "code": e.response.status_code, "detail": e.response.text}
 
-# =====================================================
+    try:
+        async with httpx.AsyncClient(timeout=None) as client:
+            response = await client.request(
+                method,
+                url,
+                params=params,
+                json=json,
+                data=data,
+                files=files,
+                headers=headers,
+                follow_redirects=True,
+            )
+
+            # Levanta error si el microservicio respondió 4xx o 5xx
+            response.raise_for_status()
+
+            # 🔥 Si la respuesta es JSON, devuélvelo como dict
+            if "application/json" in response.headers.get("content-type", ""):
+                return response.json()
+
+            # 🔥 Si no (ej: texto), retorna el contenido bruto
+            return response.text
+
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=f"Servicio no disponible: {url}")
+
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=e.response.text
+        )
+# ===================================================
 # ENDPOINTS
 # =====================================================
 @app.post("/auth/login")
@@ -76,6 +104,20 @@ async def verify_email(request: dict):
 @app.post("/personas/crear")
 async def crear_persona(request: dict, credentials: HTTPAuthorizationCredentials = Depends(security)):
     return await _forward_request("POST", f"{config.CREAR_URL}/crear", token=credentials.credentials, json=request)
+
+@app.post("/personas/crear-todas")
+async def crear_persona_multiple(
+    archivo: UploadFile = File(...),
+    delimitador: str = Form(","),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    return await _forward_request(
+        "POST",
+        f"{config.CREAR_URL}/cargar-archivo",
+        token=credentials.credentials,
+        files={"archivo": (archivo.filename, await archivo.read(), archivo.content_type)},
+        data={"delimitador": delimitador}
+    )
 
 @app.get("/personas/consultar/{nro_doc}")
 async def consultar_persona(nro_doc: str, credentials: HTTPAuthorizationCredentials = Depends(security)):

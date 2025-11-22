@@ -1087,7 +1087,10 @@ export default function App() {
     consultedRag: 0,
     deleted: 0
   });
-
+  const [archivo, setArchivo] = useState(null);
+  const [delimitador, setDelimitador] = useState(",");
+  const [resultadoUpload, setResultadoUpload] = useState(null);
+  const [loadingUpload, setLoadingUpload] = useState(false);
   const [registroEmail, setRegistroEmail] = useState('');
   const [registroPassword, setRegistroPassword] = useState('');
   const [registroNombre, setRegistroNombre] = useState('');
@@ -1096,6 +1099,8 @@ export default function App() {
   const [emailRegistrado, setEmailRegistrado] = useState('');
   const [erroresRegistro, setErroresRegistro] = useState({});
   const [imageKey, setImageKey] = useState(0);
+  const [progreso, setProgreso] = useState([]);
+  const [procesando, setProcesando] = useState(false);
 
   const [formCrear, setFormCrear] = useState({
     primer_nombre: '',
@@ -1118,6 +1123,7 @@ export default function App() {
 
   const [erroresModificar, setErroresModificar] = useState({});
   const [mostrandoTodas, setMostrandoTodas] = useState(false);
+
   const handleConsultarTodas = async () => {
     setLoading(true);
     setPersonaConsultada(null);
@@ -1419,6 +1425,60 @@ export default function App() {
       showMessage('Error de conexión: ' + error.message, 'error');
     }
     setLoading(false);
+  };
+  const cargarArchivoMasivo = async () => {
+    if (!archivo) {
+      showMessage("Seleccione un archivo antes de cargarlo", "error");
+      return;
+    }
+
+    if (!delimitador || delimitador.length === 0) {
+      showMessage("Debe especificar un delimitador", "error");
+      return;
+    }
+
+    setProcesando(true);
+    setProgreso([]);
+
+    const formData = new FormData();
+    formData.append("archivo", archivo);
+    formData.append("delimitador", delimitador);
+
+    try {
+      const response = await fetch(`${API_URL}/personas/crear-todas`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        showMessage("Error al procesar el archivo", "error");
+        setProcesando(false);
+        return;
+      }
+
+      // === respuesta normal ===
+      const data = await response.json();
+
+      // asumimos que llega { resultados: [...] }
+      setProgreso([
+        { status: "info", msg: `Total filas: ${data.total}` },
+        { status: "info", msg: `Insertadas: ${data.insertadas}` },
+        ...data.errores.map(err => ({
+          status: "error",
+          fila: err.fila,
+          errores: err.motivo
+        })),
+        { status: "info", msg: "Proceso finalizado" }
+      ]);
+
+    } catch (err) {
+      showMessage("Error en conexión: " + err.message, "error");
+    }
+
+    setProcesando(false);
   };
 
   const handleConsultarPersona = async () => {
@@ -1903,7 +1963,19 @@ export default function App() {
               <span className="text-xl">Crear Personas</span>
               <p className="text-emerald-100 text-sm mt-2 opacity-90">Registrar nuevas personas en el sistema</p>
             </div>
-
+            <div 
+              onClick={() => setCurrentView("cargarMasivo")}
+              className="group bg-teal-600 hover:bg-teal-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-teal-600 hover:border-teal-700"
+              style={{ animationDelay: '50ms' }}
+            >
+              <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Upload size={32} />
+              </div>
+              <span className="text-xl">Carga Masiva</span>
+              <p className="text-teal-100 text-sm mt-2 opacity-90">
+                Importar personas desde archivo CSV/TXT
+              </p>
+            </div>
             <div 
               onClick={() => setCurrentView('consultar')} 
               className="group bg-blue-600 hover:bg-blue-700 text-white p-8 rounded-2xl text-center font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg animate-slideUp cursor-pointer border-2 border-blue-600 hover:border-blue-700"
@@ -1968,6 +2040,100 @@ export default function App() {
       </div>
     );
   }
+  
+  if (currentView === "cargarMasivo") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <ViewHeader
+          title="Carga Masiva de Personas"
+          subtitle="Suba un archivo CSV o TXT y observe el progreso en tiempo real"
+          gradient="from-purple-600 to-fuchsia-700"
+          breadcrumbItems={["Menú Principal", "Carga Masiva"]}
+          icon={Upload}
+          onBack={() => setCurrentView("menu")}
+        />
+
+        <div className="max-w-4xl mx-auto p-8">
+          {message && <Alert message={message} type={messageType} />}
+
+          {/* CARD PRINCIPAL */}
+          <Card title="Subir archivo" icon={Upload}>
+            <div className="space-y-6">
+
+              {/* Seleccionar archivo */}
+              <div>
+                <label className="block font-semibold mb-1">Archivo CSV/TXT</label>
+                <input
+                  type="file"
+                  accept=".csv,.txt"
+                  onChange={(e) => setArchivo(e.target.files[0])}
+                  className="w-full bg-white border border-gray-300 rounded p-2"
+                />
+              </div>
+
+              {/* Delimitador */}
+              <div>
+                <label className="block font-semibold mb-1">Delimitador</label>
+                <input
+                  type="text"
+                  value={delimitador}
+                  onChange={(e) => setDelimitador(e.target.value)}
+                  placeholder="Ejemplo: ,   ;   |"
+                  className="w-full bg-white border border-gray-300 rounded p-2"
+                />
+              </div>
+
+              {/* Botón cargar */}
+              <Button
+                onClick={cargarArchivoMasivo}
+                disabled={procesando}
+                className="w-full py-4 text-lg"
+                variant="primary"
+              >
+                {procesando ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={20} />
+                    Cargar Archivo
+                  </>
+                )}
+              </Button>
+
+            </div>
+          </Card>
+
+          {/* PROGRESO EN TIEMPO REAL */}
+          {progreso.length > 0 && (
+            <div className="bg-white p-4 rounded shadow mt-6 h-64 overflow-auto text-sm">
+              {progreso.map((p, i) => (
+                <div key={i} className="py-1">
+                  {p.status === "ok" && (
+                    <span className="text-green-600">✔ {p.msg}</span>
+                  )}
+
+                  {p.status === "error" && (
+                    <span className="text-red-600">
+                      ✘ Error en fila {p.fila}: {p.errores ? p.errores.join(", ") : ""}
+                    </span>
+                  )}
+
+                  {/* Mensaje informativo */}
+                  {p.status === "info" && (
+                    <span className="text-blue-600">{p.msg}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
 
   if (currentView === 'chat') {
     return (
@@ -2241,7 +2407,7 @@ export default function App() {
                 error={erroresCrear.foto}
                 required
               />
-            </div>
+            </div>           
 
             <Button onClick={handleCrearPersona} disabled={loading} className="w-full text-lg py-4">
               {loading ? (
