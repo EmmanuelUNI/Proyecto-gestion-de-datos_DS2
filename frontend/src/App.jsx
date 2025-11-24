@@ -314,6 +314,36 @@ const LogDetailRow = ({ log }) => {
     </>
   );
 };
+
+function ToggleConsulta({ initialState = false, onToggle }) {
+  const [enabled, setEnabled] = useState(initialState);
+
+  const handleToggle = () => {
+    const newState = !enabled;
+    setEnabled(newState);
+    onToggle(newState);
+  };
+
+  return (
+    <div
+      onClick={handleToggle}
+      className={`relative w-20 h-10 flex items-center rounded-full cursor-pointer transition-all
+      ${enabled ? "bg-green-600" : "bg-red-600"}`}
+    >
+      <div
+        className={`absolute w-8 h-8 bg-white rounded-full shadow-md transform transition-transform
+        ${enabled ? "translate-x-10" : "translate-x-0"}`}
+      ></div>
+
+      <span className="absolute left-2 text-white text-sm font-semibold">
+        {enabled ? "" : "Off"}
+      </span>
+      <span className="absolute right-2 text-white text-sm font-semibold">
+        {enabled ? "On" : ""}
+      </span>
+    </div>
+  );
+}
 const validaciones = {
   email: (value) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1515,6 +1545,34 @@ export default function App() {
     }
     setLoading(false);
   };
+
+  const handleApagarBackend = async () => {
+    try {
+      const resp = await fetch(`${API_URL}/auth/stop`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      const data = await resp.json();
+      showMessage(data.msg || "Consulta apagado", "success");
+    } catch (err) {
+      showMessage("Error apagando backend: " + err.message, "error");
+    }
+  };
+
+  const handlePrenderBackend = async () => {
+    try {
+      const resp = await fetch(`${API_URL}/auth/start`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      const data = await resp.json();
+      showMessage(data.msg || "Consulta iniciado", "success");
+    } catch (err) {
+      showMessage("Error iniciando backend: " + err.message, "error");
+    }
+  };
   const handleConsultarPersona2 = async (doc) => {
     try {
       setLoading(true);
@@ -2493,6 +2551,18 @@ export default function App() {
               <Users size={20} />
               Mostrar Todas
             </Button>
+          </div>
+          <div className="flex justify-center mt-6">
+            <ToggleConsulta
+              initialState={true} 
+              onToggle={(newState) => {
+                if (newState) {
+                  handlePrenderBackend();
+                } else {
+                  handleApagarBackend();
+                }
+              }}
+            />
           </div>
           {mostrandoTodas && todasLasPersonas.length > 0 && (
             <Card title={`Todas las Personas (${todasLasPersonas.length} registros)`} icon={Users}>

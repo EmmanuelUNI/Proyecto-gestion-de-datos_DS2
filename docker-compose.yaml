@@ -4,8 +4,11 @@ services:
     build: 
       context: ./backend/api-gateway
     container_name: api-gateway
+    user: "0:0" 
     env_file:
       - .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8000:8000"
     depends_on:

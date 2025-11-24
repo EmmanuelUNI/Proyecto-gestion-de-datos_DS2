@@ -7,6 +7,7 @@ from typing import Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from fastapi import File, UploadFile, Form
+import os
 # =====================================================
 # CONFIGURACIÓN CENTRALIZADA
 # =====================================================
@@ -79,7 +80,8 @@ async def _forward_request(
             return response.text
 
     except httpx.RequestError:
-        raise HTTPException(status_code=503, detail=f"Servicio no disponible: {url}")
+        service_name = url.replace("http://", "").split(":")[0]
+        raise HTTPException(status_code=503, detail=f"Servicio no disponible: {service_name}")
 
     except httpx.HTTPStatusError as e:
         raise HTTPException(
@@ -118,6 +120,16 @@ async def crear_persona_multiple(
         files={"archivo": (archivo.filename, await archivo.read(), archivo.content_type)},
         data={"delimitador": delimitador}
     )
+
+@app.post("/auth/stop")
+def stop_container():
+    os.system("docker stop consultar-service")
+    return {"msg": "Contenedor detenido"}
+
+@app.post("/auth/start")
+def start_container():
+    os.system("docker start consultar-service")
+    return {"msg": "Contenedor iniciado"}
 
 @app.get("/personas/consultar/{nro_doc}")
 async def consultar_persona(nro_doc: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
